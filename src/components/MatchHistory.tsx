@@ -44,15 +44,26 @@ export default function MatchHistory({
             const order: Record<Medal, number> = { GOLD: 0, SILVER: 1, BRONZE: 2, NONE: 3 };
             return order[a.medal] - order[b.medal];
           });
+        const others = m.results.filter((r) => r.medal === 'NONE');
         return (
           <div key={m.id} className="match-row">
             <span className="match-row-date">{formatDate(m.date)}</span>
-            <div className="match-row-podium">
-              {podium.map((r) => (
-                <span key={r.id} className="match-row-podium-item">
-                  {MEDAL_EMOJI[r.medal]} {r.player.name}
-                </span>
-              ))}
+            <div className="match-row-players">
+              <div className="match-row-podium">
+                {podium.map((r) => (
+                  <span key={r.id} className="match-row-podium-item">
+                    {MEDAL_EMOJI[r.medal]} {r.player.name}
+                  </span>
+                ))}
+              </div>
+              {others.length > 0 && (
+                <div className="match-row-others">
+                  <span className="match-row-others-label">Anche:</span>
+                  {others.map((r) => (
+                    <span key={r.id} className="match-row-others-item">{r.player.name}</span>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="match-row-meta">
               <span className="match-row-count">{m.playerCount} giocatori</span>

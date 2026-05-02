@@ -778,6 +778,13 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.match-row-players {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
 .match-row-podium {
   display: flex;
   flex-wrap: wrap;
@@ -790,6 +797,30 @@ button {
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
   border: 1px solid var(--card-border);
+}
+
+.match-row-others {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.55);
+  align-items: center;
+}
+
+.match-row-others-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.match-row-others-item {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .match-row-count {
