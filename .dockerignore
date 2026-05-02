@@ -1,0 +1,60 @@
+# File NON copiati nel context Docker durante `docker compose build`.
+# Senza questo file, Docker invia l'INTERO repo al daemon (1.3 GB), incluso
+# node_modules, .git, .next, leftover. Con questo file il context cala a
+# ~500 KB (solo codice + schema + package*.json + Dockerfile + entrypoint).
+
+# Dipendenze Node (verranno reinstallate dentro il container)
+node_modules
+node_modules_old
+
+# Build output Next.js (ricostruito dentro il container)
+.next
+.next-build
+out
+build
+dist
+
+# DB SQLite locale: NON deve finire nell'immagine. Il volume Docker
+# `sqlite-data` lo gestisce. Se finisse nell'immagine, l'avvio
+# sovrascriverebbe il volume con dati di dev.
+prisma/data
+prisma/dev.db
+prisma/dev.db.bak
+
+# Env locale (la VPS userà il suo .env)
+.env
+.env.local
+.env.*.local
+
+# Git history (inutile dentro il container)
+.git
+.gitignore
+.gitattributes
+
+# IDE / editor
+.vscode
+.idea
+*.swp
+.DS_Store
+Thumbs.db
+
+# Log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Test/dev artifacts
+.bat-test-out.log
+.bat-test-err.log
+tsconfig.tsbuildinfo
+
+# Documentazione (non serve runtime)
+README.md
+PRODUCT_SPEC.md
+
+# Cartelle leftover che non devono finire in produzione
+app_temp2
+
+# Bat di sviluppo locale (irrilevante in Docker)
+start_local.bat

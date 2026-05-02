@@ -1,26 +1,43 @@
+# Dipendenze Node (mai committate)
 node_modules
 node_modules_old
+
+# Build output Next.js
 .next
 .next-build
 out
 build
 dist
 
-# Env locale (mantieni .env.example committato)
+# Cache TypeScript
+tsconfig.tsbuildinfo
+
+# Env locale (.env.example resta committato come riferimento)
 .env
 .env.local
 .env*.local
 
-# Prisma DB locale
+# Prisma DB locale (vive nel volume Docker o su disco dev, MAI in git)
 prisma/data
+prisma/dev.db
+prisma/dev.db.bak
 
 # Log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
-# IDE
+# Test artifacts locali
+.bat-test-out.log
+.bat-test-err.log
+
+# IDE / editor
 .vscode
 .idea
 *.swp
 .DS_Store
+Thumbs.db
+
+# Cartelle leftover
+app_temp2

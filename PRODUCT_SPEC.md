@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.0 — 2026-05-03 (notte tarda, post feature pack #9)
+> Versione: 1.1 — 2026-05-03 (fine notte, post pack #10 — Docker dimagrante)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
