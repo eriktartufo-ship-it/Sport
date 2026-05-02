@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sport-app
+    restart: always
+    volumes:
+      - sqlite-data:/app/prisma/data
+    networks:
+      - sport-internal
+      - traefik-net
+    expose:
+      - "3000"
+    environment:
+      - DATABASE_URL=file:./data/dev.db
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme}
+      - JWT_SECRET=${JWT_SECRET:-supersecretjwtkey}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik-net}"
+      - "traefik.http.routers.sport.rule=Host(`${APP_DOMAIN:-sport.pieranlab.cloud}`)"
+      - "traefik.http.routers.sport.entrypoints=websecure"
+      - "traefik.http.routers.sport.tls=true"
+      - "traefik.http.routers.sport.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.sport.service=sport"
+      - "traefik.http.services.sport.loadbalancer.server.port=3000"
+
+volumes:
+  sqlite-data:
+
+networks:
+  sport-internal:
+    driver: bridge
+  traefik-net:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik-net}
