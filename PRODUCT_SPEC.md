@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.2 — 2026-05-03 (alba, post pack #11 — Git/GitHub dimagrante)
+> Versione: 1.3 — 2026-05-03 (mattino, post pack #12 — fix runtime VPS volume permissions)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
