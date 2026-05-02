@@ -3,11 +3,6 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
-      <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
-        <Link href="/settings" style={{ opacity: 0.7, fontSize: '1.5rem' }} title="Impostazioni & Login">
-          ⚙️
-        </Link>
-      </div>
       <h1 className="title">Seleziona uno Sport</h1>
       <p style={{ marginBottom: '3rem', color: 'rgba(255,255,255,0.7)', textAlign: 'center', maxWidth: '600px' }}>
         Benvenuto nel nuovo tracker sportivo. Attualmente è disponibile il modulo per il gioco del K.O. (Basket). 

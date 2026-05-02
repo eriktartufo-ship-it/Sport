@@ -33,7 +33,7 @@ model MatchResult {
   id       String @id @default(uuid())
   match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
   matchId  String
-  player   Player @relation(fields: [playerId], references: [id])
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   playerId String
   medal    String // "GOLD", "SILVER", "BRONZE", "NONE"
 

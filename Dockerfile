@@ -1,61 +1,61 @@
-FROM node:18-alpine AS base
+# syntax=docker/dockerfile:1.6
+# Sport — Next.js 16 standalone + Prisma SQLite + entrypoint che sincronizza lo schema.
 
-# Install dependencies only when needed
+FROM node:20-alpine AS base
+
+# Install dependencies (deps stage)
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-# Install dependencies based on the preferred package manager
-COPY package.json ./
-RUN npm install
-
-# Rebuild the source code only when needed
+# Build stage: compile Next.js + genera Prisma client
 FROM base AS builder
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Generate prisma client before build
 RUN npx prisma generate
-
-# Next.js telemetry is disabled by default, if we want to enable we could do it here
 ENV NEXT_TELEMETRY_DISABLED 1
-
 RUN npm run build
 
-# Production image, copy all the files and run next
+# Runtime image: minimal Next.js standalone + prisma CLI per db push all'avvio
 FROM base AS runner
 WORKDIR /app
+RUN apk add --no-cache openssl wget
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
+# Public assets + static
 COPY --from=builder /app/public ./public
+RUN mkdir .next && chown nextjs:nodejs .next
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Standalone bundle (include @prisma/client tracciato)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema and sqlite db folder
+# Schema Prisma + Prisma CLI per `prisma db push` all'avvio
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+# Entrypoint: sincronizza schema (non distruttivo) poi avvia Next.js standalone
+COPY --chown=nextjs:nodejs docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-# set hostname to localhost
-ENV HOSTNAME "0.0.0.0"
+# Healthcheck: ping della home (200 OK = app viva)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD ["node", "server.js"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -1,0 +1,26 @@
+node_modules
+node_modules_old
+.next
+.next-build
+out
+build
+dist
+
+# Env locale (mantieni .env.example committato)
+.env
+.env.local
+.env*.local
+
+# Prisma DB locale
+prisma/data
+
+# Log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode
+.idea
+*.swp
+.DS_Store

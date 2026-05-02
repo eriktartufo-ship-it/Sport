@@ -6,14 +6,23 @@ import { useRouter } from 'next/navigation';
 type Player = { id: string, name: string };
 type Medal = 'GOLD' | 'SILVER' | 'BRONZE' | 'NONE';
 
+const todayIso = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 export default function NewKOMatch() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
+  const [matchDate, setMatchDate] = useState<string>(todayIso());
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [medals, setMedals] = useState<Record<string, Medal>>({});
-  
+
   const [saving, setSaving] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
@@ -111,7 +120,7 @@ export default function NewKOMatch() {
       const res = await fetch('/api/matches/ko', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ results })
+        body: JSON.stringify({ results, date: matchDate })
       });
       
       if (res.ok) {
@@ -133,7 +142,19 @@ export default function NewKOMatch() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <h1 className="title" style={{ fontSize: '2.5rem', textAlign: 'left' }}>Nuova Partita K.O.</h1>
-      
+
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <h2 style={{ marginBottom: '1rem' }}>Data della partita</h2>
+        <input
+          type="date"
+          className="input"
+          value={matchDate}
+          max={todayIso()}
+          onChange={(e) => setMatchDate(e.target.value)}
+          style={{ maxWidth: '220px' }}
+        />
+      </div>
+
       <div className="card" style={{ marginBottom: '2rem', background: 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)' }}>
         <h2 style={{ marginBottom: '1rem' }}>1. Seleziona i partecipanti</h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -174,36 +195,36 @@ export default function NewKOMatch() {
               const currentMedal = medals[id] || 'NONE';
               
               return (
-                <div key={id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{player?.name}</span>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button 
+                <div key={id} className="medal-row">
+                  <span className="medal-row-name">{player?.name}</span>
+                  <div className="medal-row-buttons">
+                    <button
                       onClick={() => assignMedal(id, 'GOLD')}
-                      className={`btn ${currentMedal === 'GOLD' ? 'medal-gold' : 'medal-none'}`}
+                      className={`btn btn-sm medal-pick ${currentMedal === 'GOLD' ? 'medal-gold' : 'medal-none'}`}
                       style={{ background: currentMedal === 'GOLD' ? 'rgba(251, 191, 36, 0.2)' : 'transparent', border: '1px solid currentColor' }}
                     >🥇 Oro</button>
-                    
+
                     {selectedPlayers.length >= 4 && (
-                      <button 
+                      <button
                         onClick={() => assignMedal(id, 'SILVER')}
-                        className={`btn ${currentMedal === 'SILVER' ? 'medal-silver' : 'medal-none'}`}
+                        className={`btn btn-sm medal-pick ${currentMedal === 'SILVER' ? 'medal-silver' : 'medal-none'}`}
                         style={{ background: currentMedal === 'SILVER' ? 'rgba(148, 163, 184, 0.2)' : 'transparent', border: '1px solid currentColor' }}
                       >🥈 Arg</button>
                     )}
 
                     {selectedPlayers.length >= 5 && (
-                      <button 
+                      <button
                         onClick={() => assignMedal(id, 'BRONZE')}
-                        className={`btn ${currentMedal === 'BRONZE' ? 'medal-bronze' : 'medal-none'}`}
+                        className={`btn btn-sm medal-pick ${currentMedal === 'BRONZE' ? 'medal-bronze' : 'medal-none'}`}
                         style={{ background: currentMedal === 'BRONZE' ? 'rgba(180, 83, 9, 0.2)' : 'transparent', border: '1px solid currentColor' }}
                       >🥉 Bro</button>
                     )}
 
-                    <button 
+                    <button
                       onClick={() => assignMedal(id, 'NONE')}
-                      className="btn"
+                      className="btn btn-sm medal-pick"
                       style={{ background: currentMedal === 'NONE' ? 'rgba(255,255,255,0.1)' : 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}
-                    >❌ Nessuna</button>
+                    >❌</button>
                   </div>
                 </div>
               );

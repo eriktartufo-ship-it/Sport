@@ -1,5 +1,6 @@
 import './globals.css'
 import type { Metadata } from 'next'
+import AuthHeader from '@/components/AuthHeader'
 
 export const metadata: Metadata = {
   title: 'Sport Tracker',
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="it">
       <body className="animate-fade-in">
+        <AuthHeader />
         <main className="container">
           {children}
         </main>
