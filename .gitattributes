@@ -1,2 +1,9 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Script shell devono restare LF (Alpine /bin/sh non parse CRLF)
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
+
+# Bat Windows resta CRLF (CMD richiede CRLF per parsare blocchi if)
+*.bat text eol=crlf

@@ -1,13 +1,10 @@
 # syntax=docker/dockerfile:1.7
-# Sport — Next.js 16 standalone + Prisma SQLite + entrypoint che sincronizza lo schema.
+# Sport — Next.js 16 standalone + Prisma SQLite + entrypoint con chown del volume.
 # Build ottimizzato: BuildKit cache per npm, multi-stage, alpine.
 
 FROM node:20-alpine AS base
 
 # === Stage 1: deps ===
-# Installa SOLO le dipendenze. Cache mount BuildKit riusa ~/.npm tra build.
-# `--ignore-scripts` salta postinstall (prisma generate qui fallirebbe perché
-# lo schema non è ancora copiato; lo faremo nel builder).
 FROM base AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -16,7 +13,6 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci --ignore-scripts
 
 # === Stage 2: builder ===
-# Compila Next.js standalone + genera Prisma client.
 FROM base AS builder
 WORKDIR /app
 RUN apk add --no-cache openssl
@@ -26,38 +22,45 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npx prisma generate && npm run build
 
 # === Stage 3: runner ===
-# Immagine finale minimale: solo standalone bundle + prisma CLI per db push.
+# L'entrypoint gira come root per fare chown del volume mounted (Docker monta
+# i named volumes come root:root). Poi su-exec droppa i privilegi a nextjs
+# prima di eseguire l'app.
 FROM base AS runner
 WORKDIR /app
-RUN apk add --no-cache openssl wget
+RUN apk add --no-cache openssl wget su-exec
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+# Crea utente non-root (l'app girerà sotto questo utente, non come root)
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Public assets
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 RUN mkdir .next && chown nextjs:nodejs .next
 
-# Standalone bundle (include @prisma/client tracciato + tutte le deps tracciate)
+# Standalone bundle (include @prisma/client tracciato)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Schema Prisma + Prisma CLI per `prisma db push` all'avvio (necessario al primo
-# avvio per creare le tabelle nel volume sqlite-data vuoto).
+# Schema Prisma + Prisma CLI (per `prisma db push` runtime al primo deploy)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
-# Entrypoint: sincronizza schema poi avvia Next.js
-COPY --chown=nextjs:nodejs docker-entrypoint.sh /docker-entrypoint.sh
+# Pre-create della cartella data (verrà sovrascritta dal mount del volume,
+# ma serve come fallback se il volume non è settato).
+RUN mkdir -p /app/prisma/data && chown -R nextjs:nodejs /app/prisma/data
+
+# Entrypoint (gira come root, poi fa drop a nextjs via su-exec)
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-USER nextjs
+# NESSUN `USER nextjs` qui: l'entrypoint deve poter chown del volume montato
+# come root da Docker, poi delega a su-exec per girare l'app come nextjs.
 
 EXPOSE 3000
 
