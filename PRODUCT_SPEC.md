@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.5 — 2026-05-03 (pomeriggio, post pack #14 — mobile iPhone fix + giornate)
+> Versione: 1.6 — 2026-05-03 (pomeriggio tardi, post pack #15 — mini-riquadri 2x2)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
