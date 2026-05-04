@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.6 — 2026-05-03 (pomeriggio tardi, post pack #15 — mini-riquadri 2x2)
+> Versione: 1.7 — 2026-05-03 (sera, post pack #16 — gerarchia tipografica medaglie>stats)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
