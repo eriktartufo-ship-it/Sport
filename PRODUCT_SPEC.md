@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.4 — 2026-05-03 (giorno, post pack #13 — cronologia con non-vincitori)
+> Versione: 1.5 — 2026-05-03 (pomeriggio, post pack #14 — mobile iPhone fix + giornate)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
