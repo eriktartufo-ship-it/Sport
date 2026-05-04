@@ -13,6 +13,7 @@ type PlayerStat = {
   id: string;
   name: string;
   matchesPlayed: number;
+  daysPlayed: number;
   gold: number;
   silver: number;
   bronze: number;
@@ -204,6 +205,7 @@ export default function KODashboard() {
                       <th className="medal-silver">🥈 Arg</th>
                       <th className="medal-bronze">🥉 Bro</th>
                       <th>Partite</th>
+                      <th>Giornate</th>
                       <th>Media</th>
                       <th>% Podio</th>
                     </tr>
@@ -247,11 +249,12 @@ export default function KODashboard() {
                           <td className="dt-cell">{s.silver}</td>
                           <td className="dt-cell">{s.bronze}</td>
                           <td className="dt-cell">{s.matchesPlayed}</td>
+                          <td className="dt-cell">{s.daysPlayed}</td>
                           <td className="dt-cell muted">{mediaPunti}</td>
                           <td className="dt-cell">{podioBar}</td>
 
                           {/* Mobile: single card layout, hidden su desktop */}
-                          <td className="mobile-card" colSpan={9}>
+                          <td className="mobile-card" colSpan={10}>
                             <div className="mc-header">
                               <span className="mc-pos">#{idx + 1}</span>
                               <span className="mc-name">
@@ -270,6 +273,7 @@ export default function KODashboard() {
                             </div>
                             <div className="mc-stats">
                               <div><span className="mc-stat-label">Partite</span><span className="mc-stat-value">{s.matchesPlayed}</span></div>
+                              <div><span className="mc-stat-label">Giornate</span><span className="mc-stat-value">{s.daysPlayed}</span></div>
                               <div><span className="mc-stat-label">Media</span><span className="mc-stat-value">{mediaPunti}</span></div>
                               <div><span className="mc-stat-label">Podio</span><span className="mc-stat-value">{s.podiumPercentage}%</span></div>
                             </div>

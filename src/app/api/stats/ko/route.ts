@@ -7,6 +7,7 @@ type StatRow = {
   id: string;
   name: string;
   matchesPlayed: number;
+  daysPlayed: number;
   gold: number;
   silver: number;
   bronze: number;
@@ -55,6 +56,8 @@ export async function GET(request: Request) {
 
     const statsMap: Record<string, StatRow> = {};
     const perPlayerTimeline: Record<string, Array<{ date: Date; score: number }>> = {};
+    // Set di "YYYY-MM-DD" per giocatore, per contare giornate distinte
+    const perPlayerDays: Record<string, Set<string>> = {};
 
     for (const res of results) {
       const pid = res.playerId;
@@ -63,6 +66,7 @@ export async function GET(request: Request) {
           id: pid,
           name: res.player.name,
           matchesPlayed: 0,
+          daysPlayed: 0,
           gold: 0,
           silver: 0,
           bronze: 0,
@@ -82,6 +86,11 @@ export async function GET(request: Request) {
 
       if (!perPlayerTimeline[pid]) perPlayerTimeline[pid] = [];
       perPlayerTimeline[pid].push({ date: res.match.date, score });
+
+      // Conta giornata distinta (UTC, formato YYYY-MM-DD)
+      if (!perPlayerDays[pid]) perPlayerDays[pid] = new Set();
+      const dayKey = res.match.date.toISOString().slice(0, 10);
+      perPlayerDays[pid].add(dayKey);
     }
 
     for (const pid of Object.keys(statsMap)) {
@@ -90,6 +99,7 @@ export async function GET(request: Request) {
       stat.podiumPercentage = stat.matchesPlayed > 0
         ? Math.round((podiums / stat.matchesPlayed) * 100)
         : 0;
+      stat.daysPlayed = perPlayerDays[pid]?.size ?? 0;
 
       const timeline = perPlayerTimeline[pid] ?? [];
       timeline.sort((a, b) => a.date.getTime() - b.date.getTime());
