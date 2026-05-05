@@ -51,8 +51,10 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ steps.img.outputs.image }}
+          # Applica `latest` su entrambi i branch supportati (main o master),
+          # in modo indipendente da quale sia il default branch su GitHub.
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
             type=sha,format=short
 
       - name: Build and push image
