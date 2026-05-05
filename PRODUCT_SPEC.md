@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.7 — 2026-05-03 (sera, post pack #16 — gerarchia tipografica medaglie>stats)
+> Versione: 1.8 — 2026-05-03 (sera tarda, post pack #17 — classifica unificata card + grafici fix)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
