@@ -194,95 +194,45 @@ export default function KODashboard() {
             ) : stats.length === 0 ? (
               <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
             ) : (
-              <div className="table-wrap">
-                <table className="leaderboard">
-                  <thead>
-                    <tr>
-                      <th>Pos</th>
-                      <th>Giocatore</th>
-                      <th>Score</th>
-                      <th className="medal-gold">🥇 Oro</th>
-                      <th className="medal-silver">🥈 Arg</th>
-                      <th className="medal-bronze">🥉 Bro</th>
-                      <th>Partite</th>
-                      <th>Giornate</th>
-                      <th>Media</th>
-                      <th>% Podio</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.map((s, idx) => {
-                      const trendNode = s.trend !== 'unknown' && (
-                        <span
-                          className={`trend trend-${s.trend}`}
-                          title={`${TREND_LABEL[s.trend]} — ultime ${s.recentAvg !== null ? `${s.recentAvg} pt/match` : ''} vs storico ${s.baselineAvg !== null ? `${s.baselineAvg} pt/match` : ''}`}
-                          aria-label={TREND_LABEL[s.trend]}
-                        >
-                          {TREND_ICON[s.trend]}
+              <div className="leaderboard-cards">
+                {stats.map((s, idx) => {
+                  const trendNode = s.trend !== 'unknown' && (
+                    <span
+                      className={`trend trend-${s.trend}`}
+                      title={`${TREND_LABEL[s.trend]} — ultime ${s.recentAvg !== null ? `${s.recentAvg} pt/match` : ''} vs storico ${s.baselineAvg !== null ? `${s.baselineAvg} pt/match` : ''}`}
+                      aria-label={TREND_LABEL[s.trend]}
+                    >
+                      {TREND_ICON[s.trend]}
+                    </span>
+                  );
+                  const mediaPunti = (s.score / (s.matchesPlayed || 1)).toFixed(1);
+                  return (
+                    <div key={s.id} className="lb-card">
+                      <div className="mc-header">
+                        <span className="mc-pos">#{idx + 1}</span>
+                        <span className="mc-name">
+                          {s.name}
+                          {trendNode}
                         </span>
-                      );
-                      const podioBar = (
-                        <div className="podium-cell">
-                          <div className="podium-bar">
-                            <div
-                              className="podium-bar-fill"
-                              style={{
-                                width: `${s.podiumPercentage}%`,
-                                background: s.podiumPercentage > 50 ? '#10b981' : 'var(--primary)',
-                              }}
-                            />
-                          </div>
-                          <span className="podium-pct">{s.podiumPercentage}%</span>
+                        <div className="mc-score-block">
+                          <span className="mc-score-label">Score</span>
+                          <span className="mc-score-value">{s.score}</span>
                         </div>
-                      );
-                      const mediaPunti = (s.score / (s.matchesPlayed || 1)).toFixed(1);
-                      return (
-                        <tr key={s.id}>
-                          {/* Desktop: 9 td separati */}
-                          <td className="dt-cell pos">#{idx + 1}</td>
-                          <td className="dt-cell name-cell">
-                            <span className="player-name-text">{s.name}</span>
-                            {trendNode}
-                          </td>
-                          <td className="dt-cell score">{s.score}</td>
-                          <td className="dt-cell">{s.gold}</td>
-                          <td className="dt-cell">{s.silver}</td>
-                          <td className="dt-cell">{s.bronze}</td>
-                          <td className="dt-cell">{s.matchesPlayed}</td>
-                          <td className="dt-cell">{s.daysPlayed}</td>
-                          <td className="dt-cell muted">{mediaPunti}</td>
-                          <td className="dt-cell">{podioBar}</td>
-
-                          {/* Mobile: single card layout, hidden su desktop */}
-                          <td className="mobile-card" colSpan={10}>
-                            <div className="mc-header">
-                              <span className="mc-pos">#{idx + 1}</span>
-                              <span className="mc-name">
-                                {s.name}
-                                {trendNode}
-                              </span>
-                              <div className="mc-score-block">
-                                <span className="mc-score-label">Score</span>
-                                <span className="mc-score-value">{s.score}</span>
-                              </div>
-                            </div>
-                            <div className="mc-medals">
-                              <div className="mc-medal"><span aria-hidden="true">🥇</span> {s.gold}</div>
-                              <div className="mc-medal"><span aria-hidden="true">🥈</span> {s.silver}</div>
-                              <div className="mc-medal"><span aria-hidden="true">🥉</span> {s.bronze}</div>
-                            </div>
-                            <div className="mc-stats">
-                              <div><span className="mc-stat-label">Partite</span><span className="mc-stat-value">{s.matchesPlayed}</span></div>
-                              <div><span className="mc-stat-label">Giornate</span><span className="mc-stat-value">{s.daysPlayed}</span></div>
-                              <div><span className="mc-stat-label">Media</span><span className="mc-stat-value">{mediaPunti}</span></div>
-                              <div><span className="mc-stat-label">Podio</span><span className="mc-stat-value">{s.podiumPercentage}%</span></div>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      </div>
+                      <div className="mc-medals">
+                        <div className="mc-medal"><span aria-hidden="true">🥇</span> {s.gold}</div>
+                        <div className="mc-medal"><span aria-hidden="true">🥈</span> {s.silver}</div>
+                        <div className="mc-medal"><span aria-hidden="true">🥉</span> {s.bronze}</div>
+                      </div>
+                      <div className="mc-stats">
+                        <div><span className="mc-stat-label">Partite</span><span className="mc-stat-value">{s.matchesPlayed}</span></div>
+                        <div><span className="mc-stat-label">Giornate</span><span className="mc-stat-value">{s.daysPlayed}</span></div>
+                        <div><span className="mc-stat-label">Media</span><span className="mc-stat-value">{mediaPunti}</span></div>
+                        <div><span className="mc-stat-label">Podio</span><span className="mc-stat-value">{s.podiumPercentage}%</span></div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

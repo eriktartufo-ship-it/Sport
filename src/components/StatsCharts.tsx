@@ -34,6 +34,13 @@ const SCORE_BY_MEDAL: Record<string, number> = {
   NONE: 0,
 };
 
+// Paletta estesa: colori distinti per gestire molti player
+const LINE_COLORS = [
+  '#60a5fa', '#a78bfa', '#34d399', '#fbbf24', '#f87171',
+  '#22d3ee', '#fb923c', '#e879f9', '#84cc16', '#06b6d4',
+  '#f43f5e', '#facc15', '#8b5cf6', '#ec4899', '#14b8a6',
+];
+
 const formatDate = (iso: string) => {
   const d = new Date(iso);
   return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
@@ -57,21 +64,23 @@ export default function StatsCharts({
     return null;
   }
 
-  const top = stats.slice(0, 8);
-  const medalsData = top.map((s) => ({
+  // BarChart: top 8 (limite per leggibilità a 8 barre stacked)
+  const topMedals = stats.slice(0, 8);
+  const medalsData = topMedals.map((s) => ({
     name: s.name,
     Oro: s.gold,
     Argento: s.silver,
     Bronzo: s.bronze,
   }));
 
-  const top5Ids = stats.slice(0, 5).map((s) => s.id);
-  const top5Names = new Map(stats.slice(0, 5).map((s) => [s.id, s.name]));
+  // Trend chart: TUTTI i player presenti nelle stats
+  const allIds = stats.map((s) => s.id);
+  const allNames = new Map(stats.map((s) => [s.id, s.name]));
 
   const matchesAsc = [...matches].sort((a, b) => +new Date(a.date) - +new Date(b.date));
 
   const cumulative: Record<string, number> = {};
-  top5Ids.forEach((id) => { cumulative[id] = 0; });
+  allIds.forEach((id) => { cumulative[id] = 0; });
 
   const progressionData = matchesAsc.map((m) => {
     m.results.forEach((r) => {
@@ -80,23 +89,35 @@ export default function StatsCharts({
       }
     });
     const point: Record<string, number | string> = { date: formatDate(m.date) };
-    top5Ids.forEach((id) => {
-      point[top5Names.get(id) || id] = cumulative[id];
+    allIds.forEach((id) => {
+      point[allNames.get(id) || id] = cumulative[id];
     });
     return point;
   });
-
-  const lineColors = ['#60a5fa', '#a78bfa', '#34d399', '#fbbf24', '#f87171'];
 
   return (
     <div className="charts-stack">
       <div className="card chart-card">
         <h3 className="chart-title">🏅 Distribuzione medaglie (top 8)</h3>
-        <ChartBox aspect={2.2} minHeight={240}>
+        <ChartBox aspect={1.9} minHeight={280}>
           {({ width, height }) => (
-            <BarChart width={width} height={height} data={medalsData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+            <BarChart
+              width={width}
+              height={height}
+              data={medalsData}
+              margin={{ top: 10, right: 10, left: -10, bottom: 30 }}
+            >
               <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
-              <XAxis dataKey="name" stroke={COLORS.axis} fontSize={12} />
+              <XAxis
+                dataKey="name"
+                stroke={COLORS.axis}
+                fontSize={11}
+                interval={0}
+                angle={-30}
+                textAnchor="end"
+                tickMargin={8}
+                height={50}
+              />
               <YAxis stroke={COLORS.axis} fontSize={12} allowDecimals={false} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
               <Legend wrapperStyle={{ fontSize: 13 }} />
@@ -110,21 +131,29 @@ export default function StatsCharts({
 
       {progressionData.length > 0 && (
         <div className="card chart-card">
-          <h3 className="chart-title">📈 Punteggio cumulativo (top 5)</h3>
-          <ChartBox aspect={2} minHeight={260}>
+          <h3 className="chart-title">📈 Punteggio cumulativo</h3>
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>
+            Tutti gli atleti, in ordine cronologico delle partite.
+          </p>
+          <ChartBox aspect={1.9} minHeight={280}>
             {({ width, height }) => (
-              <LineChart width={width} height={height} data={progressionData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <LineChart
+                width={width}
+                height={height}
+                data={progressionData}
+                margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+              >
                 <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
                 <XAxis dataKey="date" stroke={COLORS.axis} fontSize={12} />
                 <YAxis stroke={COLORS.axis} fontSize={12} allowDecimals={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 13 }} />
-                {top5Ids.map((id, idx) => (
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                {allIds.map((id, idx) => (
                   <Line
                     key={id}
                     type="monotone"
-                    dataKey={top5Names.get(id) || id}
-                    stroke={lineColors[idx % lineColors.length]}
+                    dataKey={allNames.get(id) || id}
+                    stroke={LINE_COLORS[idx % LINE_COLORS.length]}
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     isAnimationActive={false}
@@ -136,7 +165,7 @@ export default function StatsCharts({
         </div>
       )}
 
-      <MonthlyTrendChart matches={matchesAsc} top5Ids={top5Ids} top5Names={top5Names} lineColors={lineColors} />
+      <MonthlyTrendChart matches={matchesAsc} allIds={allIds} allNames={allNames} />
     </div>
   );
 }
@@ -145,14 +174,12 @@ type MonthlyPoint = { month: string } & Record<string, number | string | null>;
 
 function MonthlyTrendChart({
   matches,
-  top5Ids,
-  top5Names,
-  lineColors,
+  allIds,
+  allNames,
 }: {
   matches: Match[];
-  top5Ids: string[];
-  top5Names: Map<string, string>;
-  lineColors: string[];
+  allIds: string[];
+  allNames: Map<string, string>;
 }) {
   const monthBucket: Record<string, Record<string, { sum: number; count: number }>> = {};
 
@@ -160,7 +187,7 @@ function MonthlyTrendChart({
     const d = new Date(m.date);
     const ym = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
     m.results.forEach((r) => {
-      if (!top5Ids.includes(r.playerId)) return;
+      if (!allIds.includes(r.playerId)) return;
       if (!monthBucket[ym]) monthBucket[ym] = {};
       if (!monthBucket[ym][r.playerId]) monthBucket[ym][r.playerId] = { sum: 0, count: 0 };
       monthBucket[ym][r.playerId].sum += SCORE_BY_MEDAL[r.medal] ?? 0;
@@ -175,9 +202,9 @@ function MonthlyTrendChart({
 
   const data: MonthlyPoint[] = months.map((ym) => {
     const point: MonthlyPoint = { month: ym };
-    top5Ids.forEach((id) => {
+    allIds.forEach((id) => {
       const b = monthBucket[ym][id];
-      const name = top5Names.get(id) || id;
+      const name = allNames.get(id) || id;
       point[name] = b ? Math.round((b.sum / b.count) * 10) / 10 : null;
     });
     return point;
@@ -185,26 +212,31 @@ function MonthlyTrendChart({
 
   return (
     <div className="card chart-card">
-      <h3 className="chart-title">🔥 Andamento mensile (top 5)</h3>
+      <h3 className="chart-title">🔥 Andamento mensile</h3>
       <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>
-        Punti medi per partita per ogni mese. Un trend in salita = forma in crescita.
+        Punti medi per partita di ogni atleta, mese per mese. Un trend in salita = forma in crescita.
       </p>
-      <ChartBox aspect={2.2} minHeight={240}>
+      <ChartBox aspect={1.9} minHeight={280}>
         {({ width, height }) => (
-          <LineChart width={width} height={height} data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+          <LineChart
+            width={width}
+            height={height}
+            data={data}
+            margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+          >
             <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
             <XAxis dataKey="month" stroke={COLORS.axis} fontSize={11} />
             <YAxis stroke={COLORS.axis} fontSize={11} allowDecimals />
             <Tooltip contentStyle={tooltipStyle} />
-            <Legend wrapperStyle={{ fontSize: 13 }} />
-            {top5Ids.map((id, idx) => (
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            {allIds.map((id, idx) => (
               <Line
                 key={id}
                 type="monotone"
-                dataKey={top5Names.get(id) || id}
-                stroke={lineColors[idx % lineColors.length]}
+                dataKey={allNames.get(id) || id}
+                stroke={LINE_COLORS[idx % LINE_COLORS.length]}
                 strokeWidth={2}
-                dot={{ r: 4 }}
+                dot={{ r: 3 }}
                 connectNulls={false}
                 isAnimationActive={false}
               />

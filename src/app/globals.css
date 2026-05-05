@@ -631,134 +631,132 @@ button {
   display: inline-block;
 }
 
-/* Default desktop: la card mobile è nascosta */
-.leaderboard .mobile-card { display: none; }
+/* Leaderboard a card unificata (desktop + mobile). Il tag <table> è
+   stato rimosso: ora ogni player è una `.lb-card` in una grid responsive. */
+.leaderboard-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.7rem;
+}
 
-/* Responsive leaderboard: dual render — mobile card su <=768px */
-@media (max-width: 768px) {
-  .leaderboard,
-  .leaderboard tbody {
-    display: block;
-    width: 100%;
-  }
-  .leaderboard thead { display: none; }
-
-  .leaderboard tbody tr {
-    display: block;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    margin-bottom: 0.6rem;
-    padding: 0;
-    overflow: hidden;
-  }
-
-  /* Su mobile nascondiamo i 9 td desktop, mostriamo solo .mobile-card */
-  .leaderboard .dt-cell { display: none; }
-  .leaderboard .mobile-card {
-    display: block;
-    padding: 0;
-    border: none;
-  }
-
-  /* Sezione 1: pos | nome (+trend) | score con label */
-  .mc-header {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.6rem;
-    align-items: center;
-    padding: 0.8rem 1rem;
-  }
-  .mc-pos {
-    font-weight: 700;
-    color: var(--primary);
-    font-size: 1rem;
-    white-space: nowrap;
-  }
-  .mc-name {
-    font-weight: 600;
-    font-size: 1.1rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-  .mc-score-block {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1.1;
-  }
-  .mc-score-label {
-    font-size: 0.65rem;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-  }
-  .mc-score-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--primary);
-  }
-
-  /* Sezione 2: 3 medaglie a colonne. Tipografia GRANDE: sono il dato
-     principale della card (chi ha vinto cosa). UNA sola linea sopra. */
-  .mc-medals {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.5rem;
-    padding: 0.7rem 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  .mc-medal {
-    background: rgba(0, 0, 0, 0.25);
-    padding: 0.7rem 0.4rem;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 1.4rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    min-height: 56px;
-  }
-
-  /* Sezione 3: 4 statistiche secondarie (Partite, Giornate, Media, Podio).
-     Tipografia PIÙ PICCOLA delle medaglie: sono info di contorno. */
-  .mc-stats {
-    display: grid;
+/* Desktop largo: 2 colonne per usare lo spazio disponibile. */
+@media (min-width: 1024px) {
+  .leaderboard-cards {
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.4rem;
-    padding: 0.6rem 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 0.85rem;
   }
-  .mc-stats > div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.15rem;
-    background: rgba(0, 0, 0, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    padding: 0.4rem 0.3rem;
-    min-height: 44px;
-  }
-  .mc-stat-label {
-    font-size: 0.58rem;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-  }
-  .mc-stat-value {
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1.1;
+}
+
+.lb-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Sezione 1: pos | nome (+trend) | score con label */
+.mc-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.8rem 1rem;
+}
+.mc-pos {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 1rem;
+  white-space: nowrap;
+}
+.mc-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.mc-score-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+.mc-score-label {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+.mc-score-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Sezione 2: 3 medaglie a colonne. Tipografia GRANDE: sono il dato
+   principale della card (chi ha vinto cosa). UNA sola linea sopra. */
+.mc-medals {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.mc-medal {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.7rem 0.4rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 56px;
+}
+
+/* Sezione 3: 4 statistiche secondarie. Tipografia PIÙ PICCOLA. */
+.mc-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.mc-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.4rem 0.3rem;
+  min-height: 44px;
+}
+.mc-stat-label {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+.mc-stat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+/* Mobile (<=768px): stats in 2x2 invece di 4 col (più leggibile su screen stretti) */
+@media (max-width: 768px) {
+  .mc-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
