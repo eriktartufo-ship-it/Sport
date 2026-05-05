@@ -1,66 +1,37 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+      <h1 className="title">Seleziona uno Sport</h1>
+      <p style={{ marginBottom: '3rem', color: 'rgba(255,255,255,0.7)', textAlign: 'center', maxWidth: '600px' }}>
+        Benvenuto nel nuovo tracker sportivo. Attualmente è disponibile il modulo per il gioco del K.O. (Basket). 
+        Scegli lo sport per visualizzare le statistiche e aggiungere nuove partite.
+      </p>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', width: '100%', maxWidth: '800px' }}>
+        
+        <Link href="/ko" style={{ display: 'block' }}>
+          <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem', cursor: 'pointer' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🏀</div>
+            <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>K.O.</h2>
+            <p style={{ color: 'rgba(255,255,255,0.7)' }}>
+              Il classico gioco a eliminazione del Basket. 
+              Vinci medaglie e scala le classifiche.
+            </p>
+          </div>
+        </Link>
+
+        {/* Future sport placeholder */}
+        <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem', opacity: 0.5 }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⚽</div>
+          <h2 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Prossimamente</h2>
+          <p style={{ color: 'rgba(255,255,255,0.7)' }}>
+            Nuovi sport verranno aggiunti in futuro.
           </p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+      </div>
     </div>
   );
 }

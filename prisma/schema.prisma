@@ -1,0 +1,41 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Player {
+  id        String        @id @default(uuid())
+  name      String        @unique
+  createdAt DateTime      @default(now())
+  results   MatchResult[]
+}
+
+model Sport {
+  id      String  @id @default(uuid())
+  name    String  @unique // e.g. "K.O."
+  matches Match[]
+}
+
+model Match {
+  id          String        @id @default(uuid())
+  sport       Sport         @relation(fields: [sportId], references: [id])
+  sportId     String
+  date        DateTime      @default(now())
+  playerCount Int
+  results     MatchResult[]
+}
+
+model MatchResult {
+  id       String @id @default(uuid())
+  match    Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId  String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String
+  medal    String // "GOLD", "SILVER", "BRONZE", "NONE"
+
+  @@unique([matchId, playerId])
+}
