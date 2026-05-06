@@ -1,0 +1,91 @@
+# Sport — docker-compose per VPS dietro Traefik
+#
+# PREREQUISITI sulla VPS (devono ESISTERE prima di `docker compose up`):
+#   1. Network Docker esterna (default: `traefik-net`). Crearla con:
+#        docker network create traefik-net
+#      oppure usare il nome reale impostando TRAEFIK_NETWORK nel .env del compose.
+#   2. Traefik attivo con almeno questi entrypoints:
+#        - `web` su :80 (per HTTP → HTTPS redirect)
+#        - `websecure` su :443
+#      e un certResolver chiamato `letsencrypt` (modificabile via env TRAEFIK_CERT_RESOLVER).
+#   3. DNS A/AAAA del dominio (default `sport.pieranlab.cloud`) puntato all'IP della VPS.
+#
+# DEPLOY: copia .env.example in .env, modifica ADMIN_PASSWORD e JWT_SECRET, poi
+#   docker compose up -d --build
+#
+# BACKUP DB:
+#   docker run --rm -v sport_sqlite-data:/data -v $PWD:/backup alpine cp /data/dev.db /backup/dev.db
+#
+# RESET DISTRUTTIVO (solo se vuoi davvero perdere tutto):
+#   docker compose down -v
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sport-app
+    restart: unless-stopped
+    volumes:
+      # Volume Docker NAMED: persiste tra restart, rebuild e update dell'immagine.
+      # Il DB SQLite vive in /app/prisma/data/dev.db DENTRO il volume.
+      - sqlite-data:/app/prisma/data
+    networks:
+      - sport-internal
+      - traefik-net
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:./data/dev.db
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme}
+      - JWT_SECRET=${JWT_SECRET:-supersecretjwtkey}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+    labels:
+      # Abilita Traefik per questo container
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK:-traefik-net}"
+
+      # Router HTTPS (websecure) — primario
+      - "traefik.http.routers.sport.rule=Host(`${APP_DOMAIN:-sport.pieranlab.cloud}`)"
+      - "traefik.http.routers.sport.entrypoints=websecure"
+      - "traefik.http.routers.sport.tls=true"
+      - "traefik.http.routers.sport.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}"
+      - "traefik.http.routers.sport.service=sport"
+
+      # Router HTTP (web) — solo per redirect 301 → HTTPS
+      - "traefik.http.routers.sport-http.rule=Host(`${APP_DOMAIN:-sport.pieranlab.cloud}`)"
+      - "traefik.http.routers.sport-http.entrypoints=web"
+      - "traefik.http.routers.sport-http.middlewares=sport-https-redirect"
+
+      # Middleware: redirect permanente HTTP → HTTPS
+      - "traefik.http.middlewares.sport-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.sport-https-redirect.redirectscheme.permanent=true"
+
+      # Service: porta interna su cui Traefik instrada
+      - "traefik.http.services.sport.loadbalancer.server.port=3000"
+
+      # Security headers (opzionale ma raccomandato)
+      - "traefik.http.routers.sport.middlewares=sport-security-headers"
+      - "traefik.http.middlewares.sport-security-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.sport-security-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.sport-security-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.sport-security-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.sport-security-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+
+volumes:
+  # Named volume: i dati restano anche dopo `docker compose down` o `up --build`.
+  # Si perdono SOLO con `docker compose down -v` esplicito.
+  sqlite-data:
+
+networks:
+  sport-internal:
+    driver: bridge
+  traefik-net:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik-net}
