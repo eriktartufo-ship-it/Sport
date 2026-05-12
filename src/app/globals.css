@@ -639,11 +639,22 @@ button {
   gap: 0.7rem;
 }
 
-/* Desktop largo: 2 colonne per usare lo spazio disponibile. */
+/* Desktop largo: 2 colonne (1024-1279px). */
 @media (min-width: 1024px) {
   .leaderboard-cards {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.85rem;
+  }
+}
+
+/* Desktop extra largo: 3 colonne. Le card si stringono ~370px ognuna,
+   quindi forziamo le stats a 2x2 per non strizzare le celle a <80px. */
+@media (min-width: 1280px) {
+  .leaderboard-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .lb-card .mc-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

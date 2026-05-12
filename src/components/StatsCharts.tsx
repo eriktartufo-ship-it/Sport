@@ -165,14 +165,28 @@ export default function StatsCharts({
         </div>
       )}
 
-      <MonthlyTrendChart matches={matchesAsc} allIds={allIds} allNames={allNames} />
+      <WeeklyTrendChart matches={matchesAsc} allIds={allIds} allNames={allNames} />
     </div>
   );
 }
 
-type MonthlyPoint = { month: string } & Record<string, number | string | null>;
+type WeeklyPoint = { week: string } & Record<string, number | string | null>;
 
-function MonthlyTrendChart({
+/**
+ * Restituisce la chiave "YYYY-Www" della settimana ISO 8601 (lun→dom).
+ * w01 = la settimana che contiene il primo giovedì dell'anno.
+ * L'ordinamento alfabetico delle chiavi è anche cronologico.
+ */
+function getIsoWeekKey(d: Date): string {
+  const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const dayNum = date.getUTCDay() || 7; // lun=1, dom=7
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum); // giovedì della stessa settimana
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+function WeeklyTrendChart({
   matches,
   allIds,
   allNames,
@@ -181,29 +195,28 @@ function MonthlyTrendChart({
   allIds: string[];
   allNames: Map<string, string>;
 }) {
-  const monthBucket: Record<string, Record<string, { sum: number; count: number }>> = {};
+  const weekBucket: Record<string, Record<string, { sum: number; count: number }>> = {};
 
   matches.forEach((m) => {
-    const d = new Date(m.date);
-    const ym = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+    const wk = getIsoWeekKey(new Date(m.date));
     m.results.forEach((r) => {
       if (!allIds.includes(r.playerId)) return;
-      if (!monthBucket[ym]) monthBucket[ym] = {};
-      if (!monthBucket[ym][r.playerId]) monthBucket[ym][r.playerId] = { sum: 0, count: 0 };
-      monthBucket[ym][r.playerId].sum += SCORE_BY_MEDAL[r.medal] ?? 0;
-      monthBucket[ym][r.playerId].count++;
+      if (!weekBucket[wk]) weekBucket[wk] = {};
+      if (!weekBucket[wk][r.playerId]) weekBucket[wk][r.playerId] = { sum: 0, count: 0 };
+      weekBucket[wk][r.playerId].sum += SCORE_BY_MEDAL[r.medal] ?? 0;
+      weekBucket[wk][r.playerId].count++;
     });
   });
 
-  const months = Object.keys(monthBucket).sort();
-  if (months.length < 2) {
+  const weeks = Object.keys(weekBucket).sort();
+  if (weeks.length < 2) {
     return null;
   }
 
-  const data: MonthlyPoint[] = months.map((ym) => {
-    const point: MonthlyPoint = { month: ym };
+  const data: WeeklyPoint[] = weeks.map((wk) => {
+    const point: WeeklyPoint = { week: wk };
     allIds.forEach((id) => {
-      const b = monthBucket[ym][id];
+      const b = weekBucket[wk][id];
       const name = allNames.get(id) || id;
       point[name] = b ? Math.round((b.sum / b.count) * 10) / 10 : null;
     });
@@ -212,9 +225,9 @@ function MonthlyTrendChart({
 
   return (
     <div className="card chart-card">
-      <h3 className="chart-title">🔥 Andamento mensile</h3>
+      <h3 className="chart-title">🔥 Andamento settimanale</h3>
       <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>
-        Punti medi per partita di ogni atleta, mese per mese. Un trend in salita = forma in crescita.
+        Punti medi per partita di ogni atleta, settimana per settimana (ISO lun→dom). Un trend in salita = forma in crescita.
       </p>
       <ChartBox aspect={1.9} minHeight={280}>
         {({ width, height }) => (
@@ -225,7 +238,7 @@ function MonthlyTrendChart({
             margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
           >
             <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
-            <XAxis dataKey="month" stroke={COLORS.axis} fontSize={11} />
+            <XAxis dataKey="week" stroke={COLORS.axis} fontSize={11} />
             <YAxis stroke={COLORS.axis} fontSize={11} allowDecimals />
             <Tooltip contentStyle={tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
