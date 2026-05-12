@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.8 — 2026-05-03 (sera tarda, post pack #17 — classifica unificata card + grafici fix)
+> Versione: 1.9 — 2026-05-03 (notte, post pack #18 — classifica 3-col + trend settimanale ISO)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
