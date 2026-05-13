@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 1.9 — 2026-05-03 (notte, post pack #18 — classifica 3-col + trend settimanale ISO)
+> Versione: 2.0 — 2026-05-04 (post pack #19 — hardening Zod + test suite + cleanup)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -172,7 +172,10 @@ o un update.**
 
 - JWT cookie httpOnly, sameSite=strict, secure in produzione.
 - Tutti i POST/PATCH mutation passano per `getAdminSession()`.
-- Validazione body con Zod **TODO** (oggi è `await request.json()` raw).
+- Validazione body con **Zod** su tutte le POST/PATCH (`src/lib/schemas.ts`).
+  Errori 400 strutturati formato `"path.field: messaggio"`.
+- Test suite Vitest: 27 test verdi (`src/lib/scoring.test.ts`,
+  `src/lib/schemas.test.ts`). Comando: `npm test`.
 
 ## TODO architetturali (parking lot)
 
