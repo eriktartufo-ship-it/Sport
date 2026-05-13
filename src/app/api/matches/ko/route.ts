@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
+import { MatchUpsertSchema, parseBody } from '@/lib/schemas';
 
 export async function GET(request: Request) {
   try {
@@ -44,20 +45,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Non autorizzato' }, { status: 401 });
   }
   try {
-    const data = await request.json();
-    const { results, date } = data;
-
-    if (!results || results.length < 3) {
-      return NextResponse.json({ error: 'Una partita di K.O. richiede almeno 3 giocatori' }, { status: 400 });
+    const body = await request.json().catch(() => ({}));
+    const parsed = parseBody(MatchUpsertSchema, body);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
+    const { results, date } = parsed.data;
 
     let matchDate: Date | undefined;
     if (date !== undefined && date !== null && date !== '') {
-      const parsed = new Date(date);
-      if (Number.isNaN(parsed.getTime())) {
+      const parsedDate = new Date(date);
+      if (Number.isNaN(parsedDate.getTime())) {
         return NextResponse.json({ error: 'Data non valida' }, { status: 400 });
       }
-      matchDate = parsed;
+      matchDate = parsedDate;
     }
 
     let sport = await prisma.sport.findUnique({ where: { name: 'K.O.' } });
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
         playerCount: results.length,
         ...(matchDate ? { date: matchDate } : {}),
         results: {
-          create: results.map((r: { playerId: string; medal: string }) => ({
+          create: results.map((r) => ({
             playerId: r.playerId,
             medal: r.medal,
           })),

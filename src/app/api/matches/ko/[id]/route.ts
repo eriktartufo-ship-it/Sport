@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
-
-const VALID_MEDALS = new Set(['GOLD', 'SILVER', 'BRONZE', 'NONE']);
+import { MatchUpsertSchema, parseBody } from '@/lib/schemas';
 
 export async function GET(
   _request: Request,
@@ -38,29 +37,20 @@ export async function PATCH(
   }
   try {
     const { id } = await params;
-    const body = await request.json();
-    const { results, date } = body as { results: Array<{ playerId: string; medal: string }>; date?: string };
-
-    if (!Array.isArray(results) || results.length < 3) {
-      return NextResponse.json({ error: 'Una partita di K.O. richiede almeno 3 giocatori' }, { status: 400 });
+    const body = await request.json().catch(() => ({}));
+    const parsed = parseBody(MatchUpsertSchema, body);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
-
-    for (const r of results) {
-      if (!r.playerId || typeof r.playerId !== 'string') {
-        return NextResponse.json({ error: 'playerId mancante o non valido' }, { status: 400 });
-      }
-      if (!VALID_MEDALS.has(r.medal)) {
-        return NextResponse.json({ error: `Medaglia non valida: ${r.medal}` }, { status: 400 });
-      }
-    }
+    const { results, date } = parsed.data;
 
     let matchDate: Date | undefined;
     if (date !== undefined && date !== null && date !== '') {
-      const parsed = new Date(date);
-      if (Number.isNaN(parsed.getTime())) {
+      const parsedDate = new Date(date);
+      if (Number.isNaN(parsedDate.getTime())) {
         return NextResponse.json({ error: 'Data non valida' }, { status: 400 });
       }
-      matchDate = parsed;
+      matchDate = parsedDate;
     }
 
     const updated = await prisma.match.update({

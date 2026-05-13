@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAdminSession } from '@/lib/auth';
+import { PlayerUpdateSchema, parseBody } from '@/lib/schemas';
 
 export async function DELETE(
   _request: Request,
@@ -34,15 +35,15 @@ export async function PATCH(
   }
   try {
     const { id } = await params;
-    const { name } = await request.json();
-
-    if (!name || typeof name !== 'string' || name.trim() === '') {
-      return NextResponse.json({ error: 'Il nome è obbligatorio' }, { status: 400 });
+    const body = await request.json().catch(() => ({}));
+    const parsed = parseBody(PlayerUpdateSchema, body);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
 
     const player = await prisma.player.update({
       where: { id },
-      data: { name: name.trim() },
+      data: { name: parsed.data.name },
     });
     return NextResponse.json(player);
   } catch (error: unknown) {

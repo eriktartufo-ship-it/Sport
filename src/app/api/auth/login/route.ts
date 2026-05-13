@@ -1,13 +1,19 @@
 import { NextResponse } from 'next/server';
 import { createAuthToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { LoginSchema, parseBody } from '@/lib/schemas';
 
 export async function POST(request: Request) {
   try {
-    const { password } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const parsed = parseBody(LoginSchema, body);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    }
+
     const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!adminPassword || password !== adminPassword) {
+    if (!adminPassword || parsed.data.password !== adminPassword) {
       return NextResponse.json({ error: 'Password non valida' }, { status: 401 });
     }
 
@@ -23,6 +29,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: 'Errore interno' }, { status: 500 });
   }
 }
