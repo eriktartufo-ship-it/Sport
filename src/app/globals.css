@@ -1024,6 +1024,65 @@ button {
   background: rgba(239, 68, 68, 0.08);
 }
 
+.icon-btn-restore:hover {
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+/* Player tab — soft-delete UI */
+.player-tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.show-deleted-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  user-select: none;
+}
+
+.show-deleted-toggle input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.player-card-deleted {
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.02);
+  border-style: dashed;
+}
+
+.player-card-deleted .player-card-name {
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+}
+
+.player-deleted-tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
 /* Head-to-head ⚔️ */
 .h2h-card {
   display: flex;

@@ -29,7 +29,7 @@ type PlayerStat = {
   bestWeekKey: string | null;
 };
 
-type Player = { id: string; name: string };
+type Player = { id: string; name: string; deletedAt?: string | null };
 type TabId = 'classifica' | 'grafici' | 'dati' | 'h2h' | 'player';
 
 const DASHBOARD_TABS = [
@@ -69,15 +69,17 @@ export default function KODashboard() {
   const [editingName, setEditingName] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
   const [activeTab, setActiveTab] = useState<TabId>('classifica');
+  const [showDeletedPlayers, setShowDeletedPlayers] = useState(false);
 
-  const load = useCallback(async (currentSeason: number | 'all') => {
+  const load = useCallback(async (currentSeason: number | 'all', includeDeletedPlayers = false) => {
     setLoading(true);
     const seasonQS = currentSeason === 'all' ? '' : `?season=${currentSeason}`;
+    const playersQS = includeDeletedPlayers ? '?includeDeleted=1' : '';
     try {
       const [statsRes, matchesRes, playersRes, authRes, seasonsRes] = await Promise.all([
         fetch(`/api/stats/ko${seasonQS}`, { cache: 'no-store' }),
         fetch(`/api/matches/ko${seasonQS}`, { cache: 'no-store' }),
-        fetch('/api/players', { cache: 'no-store' }),
+        fetch(`/api/players${playersQS}`, { cache: 'no-store' }),
         fetch('/api/auth/me', { cache: 'no-store' }),
         fetch('/api/seasons/ko', { cache: 'no-store' }),
       ]);
@@ -94,8 +96,8 @@ export default function KODashboard() {
   }, []);
 
   useEffect(() => {
-    load(season);
-  }, [load, season]);
+    load(season, showDeletedPlayers);
+  }, [load, season, showDeletedPlayers]);
 
   const handleAddPlayer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +111,7 @@ export default function KODashboard() {
       });
       if (res.ok) {
         setNewPlayerName('');
-        load(season);
+        load(season, showDeletedPlayers);
       } else {
         const err = await res.json();
         alert(err.error || 'Errore');
@@ -141,7 +143,7 @@ export default function KODashboard() {
       });
       if (res.ok) {
         cancelEdit();
-        load(season);
+        load(season, showDeletedPlayers);
       } else {
         const err = await res.json();
         alert(err.error || 'Errore');
@@ -153,14 +155,32 @@ export default function KODashboard() {
   };
 
   const handleDelete = async (player: Player) => {
-    if (!confirm(`Cancellare "${player.name}"? Verranno rimosse anche tutte le sue medaglie e risultati. L'azione è irreversibile.`)) return;
+    if (!confirm(`Cancellare "${player.name}"? Non sarà più selezionabile per nuove partite, ma la sua storia (medaglie, classifica, cronologia) resterà intatta. Puoi ripristinarlo in qualsiasi momento.`)) return;
     try {
       const res = await fetch(`/api/players/${player.id}`, { method: 'DELETE' });
       if (res.ok) {
-        load(season);
+        load(season, showDeletedPlayers);
       } else {
         const err = await res.json();
         alert(err.error || 'Errore nella cancellazione');
+      }
+    } catch {
+      alert('Errore di connessione');
+    }
+  };
+
+  const handleRestore = async (player: Player) => {
+    try {
+      const res = await fetch(`/api/players/${player.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restore: true }),
+      });
+      if (res.ok) {
+        load(season, showDeletedPlayers);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Errore nel ripristino');
       }
     } catch {
       alert('Errore di connessione');
@@ -282,7 +302,19 @@ export default function KODashboard() {
 
         {activeTab === 'player' && (
           <div className="card">
-            <h2 className="card-title">Giocatori</h2>
+            <div className="player-tab-header">
+              <h2 className="card-title" style={{ margin: 0 }}>Giocatori</h2>
+              {isAuthenticated && (
+                <label className="show-deleted-toggle">
+                  <input
+                    type="checkbox"
+                    checked={showDeletedPlayers}
+                    onChange={(e) => setShowDeletedPlayers(e.target.checked)}
+                  />
+                  <span>Mostra cancellati</span>
+                </label>
+              )}
+            </div>
 
             {isAuthenticated && (
               <form onSubmit={handleAddPlayer} className="add-player-form-inline">
@@ -304,52 +336,69 @@ export default function KODashboard() {
               <p className="muted">Nessun giocatore.</p>
             ) : (
               <div className="player-grid">
-                {players.map((p) => (
-                  <div key={p.id} className="player-card">
-                    {editingId === p.id ? (
-                      <>
-                        <input
-                          type="text"
-                          className="input input-sm player-edit-input"
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveEdit(p.id);
-                            if (e.key === 'Escape') cancelEdit();
-                          }}
-                        />
-                        <button
-                          className="icon-btn"
-                          onClick={() => saveEdit(p.id)}
-                          disabled={savingEdit}
-                          aria-label="Salva"
-                        >✓</button>
-                        <button className="icon-btn" onClick={cancelEdit} aria-label="Annulla">✕</button>
-                      </>
-                    ) : (
-                      <>
-                        <span className="player-card-name">{p.name}</span>
-                        {isAuthenticated && (
-                          <div className="player-card-actions">
-                            <button
-                              className="icon-btn"
-                              onClick={() => startEdit(p)}
-                              aria-label={`Modifica ${p.name}`}
-                              title="Modifica nome"
-                            >✏️</button>
-                            <button
-                              className="icon-btn icon-btn-danger"
-                              onClick={() => handleDelete(p)}
-                              aria-label={`Cancella ${p.name}`}
-                              title="Cancella"
-                            >🗑️</button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                ))}
+                {players.map((p) => {
+                  const isDeleted = !!p.deletedAt;
+                  return (
+                    <div key={p.id} className={`player-card${isDeleted ? ' player-card-deleted' : ''}`}>
+                      {editingId === p.id ? (
+                        <>
+                          <input
+                            type="text"
+                            className="input input-sm player-edit-input"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEdit(p.id);
+                              if (e.key === 'Escape') cancelEdit();
+                            }}
+                          />
+                          <button
+                            className="icon-btn"
+                            onClick={() => saveEdit(p.id)}
+                            disabled={savingEdit}
+                            aria-label="Salva"
+                          >✓</button>
+                          <button className="icon-btn" onClick={cancelEdit} aria-label="Annulla">✕</button>
+                        </>
+                      ) : (
+                        <>
+                          <span className="player-card-name">
+                            {p.name}
+                            {isDeleted && <span className="player-deleted-tag" title={`Cancellato il ${new Date(p.deletedAt!).toLocaleDateString('it-IT')}`}>cancellato</span>}
+                          </span>
+                          {isAuthenticated && (
+                            <div className="player-card-actions">
+                              {isDeleted ? (
+                                <button
+                                  className="icon-btn icon-btn-restore"
+                                  onClick={() => handleRestore(p)}
+                                  aria-label={`Ripristina ${p.name}`}
+                                  title="Ripristina"
+                                >↩️</button>
+                              ) : (
+                                <>
+                                  <button
+                                    className="icon-btn"
+                                    onClick={() => startEdit(p)}
+                                    aria-label={`Modifica ${p.name}`}
+                                    title="Modifica nome"
+                                  >✏️</button>
+                                  <button
+                                    className="icon-btn icon-btn-danger"
+                                    onClick={() => handleDelete(p)}
+                                    aria-label={`Cancella ${p.name}`}
+                                    title="Cancella"
+                                  >🗑️</button>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

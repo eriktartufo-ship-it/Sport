@@ -11,6 +11,11 @@ model Player {
   id        String        @id @default(uuid())
   name      String        @unique
   createdAt DateTime      @default(now())
+  // Soft-delete: timestamp del momento di "cancellazione". Player con
+  // deletedAt != null sono nascosti dalle liste attive (add player,
+  // selettori nuova partita) ma la loro storia resta nei MatchResult
+  // → continuano a comparire in classifica/cronologia/H2H.
+  deletedAt DateTime?
   results   MatchResult[]
 }
 
