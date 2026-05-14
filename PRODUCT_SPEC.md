@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.0 — 2026-05-04 (post pack #19 — hardening Zod + test suite + cleanup)
+> Versione: 2.1 — 2026-05-13 (post pack #20 — H2H + streak/bestWeek)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -140,7 +140,8 @@ nelle card mobile e nel tooltip mostra i due valori.
 | GET | `/api/matches/ko/[id]` | pubblico | singola partita con results.player |
 | PATCH | `/api/matches/ko/[id]` | admin | replace medaglie e/o date, validazione: ≥3 risultati, medaglia ∈ enum, date parse valida |
 | DELETE | `/api/matches/ko/[id]` | admin | cancella partita + cascade dei suoi MatchResult |
-| GET | `/api/stats/ko?season=YYYY` | pubblico | classifica con filtro stagione opzionale |
+| GET | `/api/stats/ko?season=YYYY` | pubblico | classifica con filtro stagione opzionale + trend/streak/bestWeek |
+| GET | `/api/stats/h2h?p1=&p2=` | pubblico | confronto diretto: wins/ties/cronologia. 400 missing/uguale, 404 player inesistente |
 | GET | `/api/db/export` | admin | binario SQLite |
 | POST | `/api/db/import` | admin | multipart, distruttivo |
 
