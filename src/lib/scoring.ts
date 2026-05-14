@@ -29,6 +29,14 @@ export type PlayerStat = {
   recentAvg: number | null;
   baselineAvg: number | null;
   trend: Trend;
+  /** Vittorie (GOLD) consecutive contando dall'ultimo match indietro. */
+  currentStreak: number;
+  /** Lunghezza massima di una sequenza di GOLD consecutivi nella storia. */
+  bestStreak: number;
+  /** Punti totalizzati nella settimana ISO migliore. 0 se nessun match. */
+  bestWeekPoints: number;
+  /** Chiave "YYYY-Www" della settimana migliore (null se nessun match). */
+  bestWeekKey: string | null;
 };
 
 export type ScoringOptions = {
@@ -139,6 +147,19 @@ const DEFAULTS: Required<ScoringOptions> = {
 };
 
 /**
+ * Chiave ISO 8601 (lun→dom, w01 = settimana col primo giovedì dell'anno)
+ * "YYYY-Www" zero-padded. Ordinamento alfabetico = cronologico.
+ */
+function getIsoWeekKey(d: Date): string {
+  const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+/**
  * Aggrega i MatchResult per player e calcola:
  * - matchesPlayed, daysPlayed (giornate UTC distinte)
  * - gold/silver/bronze counter
@@ -155,8 +176,10 @@ export function computePlayerStats(
   const opts = { ...DEFAULTS, ...options };
 
   const statsMap: Record<string, PlayerStat> = {};
-  const perPlayerTimeline: Record<string, Array<{ date: Date; score: number }>> = {};
+  const perPlayerTimeline: Record<string, Array<{ date: Date; score: number; medal: Medal }>> = {};
   const perPlayerDays: Record<string, Set<string>> = {};
+  // Per ogni player, somma punti per settimana ISO
+  const perPlayerWeekly: Record<string, Map<string, number>> = {};
 
   for (const res of results) {
     const pid = res.playerId;
@@ -174,6 +197,10 @@ export function computePlayerStats(
         recentAvg: null,
         baselineAvg: null,
         trend: 'unknown',
+        currentStreak: 0,
+        bestStreak: 0,
+        bestWeekPoints: 0,
+        bestWeekKey: null,
       };
     }
     const matchScore = SCORE_BY_MEDAL[res.medal] ?? 0;
@@ -184,10 +211,14 @@ export function computePlayerStats(
     else if (res.medal === 'BRONZE') statsMap[pid].bronze++;
 
     if (!perPlayerTimeline[pid]) perPlayerTimeline[pid] = [];
-    perPlayerTimeline[pid].push({ date: res.match.date, score: matchScore });
+    perPlayerTimeline[pid].push({ date: res.match.date, score: matchScore, medal: res.medal });
 
     if (!perPlayerDays[pid]) perPlayerDays[pid] = new Set();
     perPlayerDays[pid].add(res.match.date.toISOString().slice(0, 10));
+
+    if (!perPlayerWeekly[pid]) perPlayerWeekly[pid] = new Map();
+    const wk = getIsoWeekKey(res.match.date);
+    perPlayerWeekly[pid].set(wk, (perPlayerWeekly[pid].get(wk) ?? 0) + matchScore);
   }
 
   for (const pid of Object.keys(statsMap)) {
@@ -200,6 +231,43 @@ export function computePlayerStats(
 
     const timeline = perPlayerTimeline[pid] ?? [];
     timeline.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    // currentStreak: GOLD consecutivi a partire dall'ULTIMO match indietro.
+    let cur = 0;
+    for (let i = timeline.length - 1; i >= 0; i--) {
+      if (timeline[i].medal === 'GOLD') cur++;
+      else break;
+    }
+    stat.currentStreak = cur;
+
+    // bestStreak: massima sequenza di GOLD consecutivi nella storia.
+    let best = 0;
+    let run = 0;
+    for (const t of timeline) {
+      if (t.medal === 'GOLD') {
+        run++;
+        if (run > best) best = run;
+      } else {
+        run = 0;
+      }
+    }
+    stat.bestStreak = best;
+
+    // bestWeek: settimana ISO con maggior punteggio cumulativo
+    const weekly = perPlayerWeekly[pid];
+    if (weekly && weekly.size > 0) {
+      let bestPts = 0;
+      let bestKey: string | null = null;
+      for (const [wk, pts] of weekly) {
+        if (pts > bestPts) {
+          bestPts = pts;
+          bestKey = wk;
+        }
+      }
+      stat.bestWeekPoints = bestPts;
+      stat.bestWeekKey = bestKey;
+    }
+
     if (timeline.length >= opts.trendMinMatches) {
       const recentSlice = timeline.slice(-opts.recentWindow);
       const baselineSlice = timeline.slice(0, Math.max(0, timeline.length - recentSlice.length));

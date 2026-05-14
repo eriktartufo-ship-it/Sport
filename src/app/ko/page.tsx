@@ -23,6 +23,10 @@ type PlayerStat = {
   recentAvg: number | null;
   baselineAvg: number | null;
   trend: Trend;
+  currentStreak: number;
+  bestStreak: number;
+  bestWeekPoints: number;
+  bestWeekKey: string | null;
 };
 
 type Player = { id: string; name: string };
@@ -215,6 +219,15 @@ export default function KODashboard() {
                         <span className="mc-name">
                           {s.name}
                           {trendNode}
+                          {s.currentStreak >= 2 && (
+                            <span
+                              className="streak-badge"
+                              title={`${s.currentStreak} vittorie consecutive`}
+                              aria-label={`${s.currentStreak} vittorie consecutive`}
+                            >
+                              🔥{s.currentStreak}
+                            </span>
+                          )}
                         </span>
                         <div className="mc-score-block">
                           <span className="mc-score-label">Score</span>
@@ -231,6 +244,8 @@ export default function KODashboard() {
                         <div><span className="mc-stat-label">Giornate</span><span className="mc-stat-value">{s.daysPlayed}</span></div>
                         <div><span className="mc-stat-label">Media</span><span className="mc-stat-value">{mediaPunti}</span></div>
                         <div><span className="mc-stat-label">Podio</span><span className="mc-stat-value">{s.podiumPercentage}%</span></div>
+                        <div><span className="mc-stat-label">Best Streak</span><span className="mc-stat-value">{s.bestStreak > 0 ? `🔥${s.bestStreak}` : '—'}</span></div>
+                        <div title={s.bestWeekKey ?? undefined}><span className="mc-stat-label">Best Week</span><span className="mc-stat-value">{s.bestWeekPoints > 0 ? s.bestWeekPoints : '—'}</span></div>
                       </div>
                     </div>
                   );

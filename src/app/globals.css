@@ -627,6 +627,20 @@ button {
 .trend-up { color: #10b981; }
 .trend-down { color: var(--danger); }
 .trend-stable { color: rgba(255, 255, 255, 0.4); }
+
+.streak-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fb923c;
+  background: rgba(251, 146, 60, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 146, 60, 0.35);
+  white-space: nowrap;
+  vertical-align: middle;
+}
 .player-name-text {
   display: inline-block;
 }
@@ -653,9 +667,8 @@ button {
   .leaderboard-cards {
     grid-template-columns: repeat(3, 1fr);
   }
-  .lb-card .mc-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  /* In layout 3-col le card sono strette (~370px), 3 stat per riga
+     diventano ~100px ognuna che è OK con padding ridotto. */
 }
 
 .lb-card {
@@ -731,10 +744,11 @@ button {
   min-height: 56px;
 }
 
-/* Sezione 3: 4 statistiche secondarie. Tipografia PIÙ PICCOLA. */
+/* Sezione 3: 6 statistiche secondarie (Partite, Giornate, Media, Podio,
+   Best Streak, Best Week). Tipografia PIÙ PICCOLA delle medaglie. */
 .mc-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0.4rem;
   padding: 0.6rem 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -764,12 +778,8 @@ button {
   line-height: 1.1;
 }
 
-/* Mobile (<=768px): stats in 2x2 invece di 4 col (più leggibile su screen stretti) */
-@media (max-width: 768px) {
-  .mc-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+/* Mobile (<=768px): stats restano in 3 col (2 righe di 3) — bilanciato.
+   Su iPhone 13 (≤400px) potrebbe stringere, override sotto se serve. */
 
 /* iPhone 13 / schermi <=400px: ulteriori riduzioni di padding e font
    per non spendere troppo spazio in margini su display piccoli. */

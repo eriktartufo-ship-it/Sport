@@ -193,6 +193,87 @@ describe('computePlayerStats — più player nella stessa partita', () => {
   });
 });
 
+describe('computePlayerStats — currentStreak / bestStreak', () => {
+  it('currentStreak conta i GOLD consecutivi più recenti', () => {
+    // Timeline: GOLD, GOLD, NONE, GOLD, GOLD, GOLD → last 3 sono GOLD → currentStreak=3
+    const stats = computePlayerStats([
+      r('p1', 'X', 'GOLD', '2026-05-01'),
+      r('p1', 'X', 'GOLD', '2026-05-02'),
+      r('p1', 'X', 'NONE', '2026-05-03'),
+      r('p1', 'X', 'GOLD', '2026-05-04'),
+      r('p1', 'X', 'GOLD', '2026-05-05'),
+      r('p1', 'X', 'GOLD', '2026-05-06'),
+    ]);
+    expect(stats[0].currentStreak).toBe(3);
+  });
+
+  it('currentStreak=0 se ultimo match non è GOLD', () => {
+    const stats = computePlayerStats([
+      r('p1', 'X', 'GOLD', '2026-05-01'),
+      r('p1', 'X', 'SILVER', '2026-05-02'),
+    ]);
+    expect(stats[0].currentStreak).toBe(0);
+  });
+
+  it('bestStreak ritrova la sequenza massima nella storia', () => {
+    // GOLD x4, NONE, GOLD x2, SILVER → max è 4
+    const stats = computePlayerStats([
+      r('p1', 'X', 'GOLD', '2026-05-01'),
+      r('p1', 'X', 'GOLD', '2026-05-02'),
+      r('p1', 'X', 'GOLD', '2026-05-03'),
+      r('p1', 'X', 'GOLD', '2026-05-04'),
+      r('p1', 'X', 'NONE', '2026-05-05'),
+      r('p1', 'X', 'GOLD', '2026-05-06'),
+      r('p1', 'X', 'GOLD', '2026-05-07'),
+      r('p1', 'X', 'SILVER', '2026-05-08'),
+    ]);
+    expect(stats[0].bestStreak).toBe(4);
+    expect(stats[0].currentStreak).toBe(0); // ultimo è SILVER
+  });
+
+  it('senza GOLD: bestStreak=0, currentStreak=0', () => {
+    const stats = computePlayerStats([
+      r('p1', 'X', 'SILVER', '2026-05-01'),
+      r('p1', 'X', 'BRONZE', '2026-05-02'),
+      r('p1', 'X', 'NONE', '2026-05-03'),
+    ]);
+    expect(stats[0].bestStreak).toBe(0);
+    expect(stats[0].currentStreak).toBe(0);
+  });
+});
+
+describe('computePlayerStats — bestWeek', () => {
+  it('bestWeekKey + bestWeekPoints = settimana ISO col punteggio max', () => {
+    // Week 1: 2026-04-27 (lun) → 2026-W18 (1° giovedì 2026 fa parte di W01)
+    // Anyway: due settimane diverse, una con 25 punti, una con 12
+    const stats = computePlayerStats([
+      // Settimana A: 1 GOLD + 1 SILVER + 1 NONE = 15
+      r('p1', 'X', 'GOLD', '2026-05-04'),  // lunedì
+      r('p1', 'X', 'SILVER', '2026-05-05'), // martedì
+      r('p1', 'X', 'NONE', '2026-05-06'),   // mercoledì
+      // Settimana B (la dopo): 1 GOLD + 1 SILVER = 15 → tie con A, prima trovata vince
+      r('p1', 'X', 'GOLD', '2026-05-11'),
+      r('p1', 'X', 'SILVER', '2026-05-12'),
+      // Settimana C (la dopo ancora): 2 GOLD = 20 → vince
+      r('p1', 'X', 'GOLD', '2026-05-18'),
+      r('p1', 'X', 'GOLD', '2026-05-19'),
+    ]);
+    expect(stats[0].bestWeekPoints).toBe(20);
+    expect(stats[0].bestWeekKey).toMatch(/^\d{4}-W\d{2}$/);
+  });
+
+  it('senza match: bestWeekPoints=0, bestWeekKey=null', () => {
+    const stats = computePlayerStats([]);
+    expect(stats).toEqual([]);
+  });
+
+  it('1 solo match: bestWeekPoints = punti di quel match', () => {
+    const stats = computePlayerStats([r('p1', 'X', 'GOLD', '2026-05-04')]);
+    expect(stats[0].bestWeekPoints).toBe(10);
+    expect(stats[0].bestWeekKey).toMatch(/^\d{4}-W\d{2}$/);
+  });
+});
+
 describe('computeHeadToHead', () => {
   it('MEDAL_RANK: GOLD < SILVER < BRONZE < NONE', () => {
     expect(MEDAL_RANK).toEqual({ GOLD: 0, SILVER: 1, BRONZE: 2, NONE: 3 });
