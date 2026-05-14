@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.1 — 2026-05-13 (post pack #20 — H2H + streak/bestWeek)
+> Versione: 2.2 — 2026-05-14 (post pack #21 — soft-delete player + restore)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -130,10 +130,10 @@ nelle card mobile e nel tooltip mostra i due valori.
 | POST | `/api/auth/login` | pubblico | Body: `{password}` → cookie auth_token |
 | GET | `/api/auth/me` | pubblico | `{authenticated:bool}` |
 | POST | `/api/auth/logout` | qualsiasi | cancella cookie |
-| GET | `/api/players` | pubblico | array di player |
-| POST | `/api/players` | admin | crea player, P2002 dup → 400 |
-| PATCH | `/api/players/[id]` | admin | rinomina (body: `{name}`), P2002 → 400, P2025 → 404 |
-| DELETE | `/api/players/[id]` | admin | cancella player + cascade dei suoi MatchResult |
+| GET | `/api/players?includeDeleted=1` | pubblico | array player. Default solo attivi (`deletedAt:null`). `?includeDeleted=1` include i soft-deleted. |
+| POST | `/api/players` | admin | crea player. P2002 ora distingue tra duplicato attivo e duplicato cancellato (suggerisce restore). |
+| PATCH | `/api/players/[id]` | admin | `{name}` rinomina · `{restore:true}` ripristina soft-deleted. P2002/P2025 → 400/404. |
+| DELETE | `/api/players/[id]` | admin | **Soft-delete**: marca `deletedAt`. Player sparisce da add/new-match ma resta in classifica/cronologia/H2H. |
 | GET | `/api/seasons/ko` | pubblico | array di anni con almeno una partita, desc |
 | GET | `/api/matches/ko?season=YYYY` | pubblico | cronologia, max 50, opzionale filtro stagione |
 | POST | `/api/matches/ko` | admin | body: `{date?, results:[{playerId, medal}]}` |
