@@ -105,12 +105,31 @@ export default function SettingsPage() {
           </div>
 
           <div className="card">
-            <h2 style={{ marginBottom: '1rem' }}>Gestione Database</h2>
-            
+            <h2 style={{ marginBottom: '1rem' }}>Esporta in CSV</h2>
+            <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>
+              Scarica classifica e cronologia come file CSV (apribili in Excel / Google Sheets / Numbers).
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+              <a
+                href="/api/export/csv/leaderboard"
+                className="btn"
+                style={{ background: 'var(--primary)', textDecoration: 'none' }}
+              >📊 Classifica</a>
+              <a
+                href="/api/export/csv/matches"
+                className="btn"
+                style={{ background: 'var(--primary)', textDecoration: 'none' }}
+              >📋 Cronologia</a>
+            </div>
+          </div>
+
+          <div className="card">
+            <h2 style={{ marginBottom: '1rem' }}>Gestione Database (backup completo)</h2>
+
             <div style={{ marginBottom: '2rem' }}>
               <h3 style={{ marginBottom: '0.5rem' }}>Esporta Dati</h3>
               <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>
-                Scarica una copia locale del database SQLite completo.
+                Scarica una copia locale del database SQLite completo (binario).
               </p>
               <button onClick={handleExport} className="btn" style={{ background: 'var(--primary)' }}>
                 ⬇️ Scarica dev.db
@@ -124,9 +143,9 @@ export default function SettingsPage() {
               <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#ef4444' }}>
                 Attenzione: caricare un file .db sovrascriverà tutti i dati attuali.
               </p>
-              <input 
-                type="file" 
-                accept=".db" 
+              <input
+                type="file"
+                accept=".db"
                 onChange={handleImport}
                 style={{
                   display: 'block',
