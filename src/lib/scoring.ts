@@ -9,6 +9,7 @@ export type Medal = 'GOLD' | 'SILVER' | 'BRONZE' | 'NONE';
 export type Trend = 'up' | 'down' | 'stable' | 'unknown';
 
 export type ScoringResult = {
+  matchId: string;
   playerId: string;
   medal: Medal;
   player: { name: string };
@@ -42,6 +43,94 @@ export const SCORE_BY_MEDAL: Record<Medal, number> = {
   BRONZE: 2,
   NONE: 0,
 };
+
+/** Rank della medaglia per il confronto H2H: più basso = meglio. */
+export const MEDAL_RANK: Record<Medal, number> = {
+  GOLD: 0,
+  SILVER: 1,
+  BRONZE: 2,
+  NONE: 3,
+};
+
+export type H2HMatch = {
+  matchId: string;
+  date: Date;
+  p1Medal: Medal;
+  p2Medal: Medal;
+  winner: 'p1' | 'p2' | 'tie';
+};
+
+export type HeadToHeadResult = {
+  p1: { id: string; name: string };
+  p2: { id: string; name: string };
+  totalMatches: number;
+  p1Wins: number;
+  p2Wins: number;
+  ties: number;
+  matches: H2HMatch[];
+};
+
+/**
+ * Confronto diretto tra due player: filtra le sole partite dove entrambi
+ * hanno giocato e calcola chi è finito sopra all'altro nel podio.
+ * Vince chi ha la medaglia con rank più basso (GOLD=0 < SILVER=1 < BRONZE=2 < NONE=3).
+ * Pareggio se entrambi hanno la stessa medaglia (caso comune: entrambi NONE).
+ *
+ * Ritorna null se p1Id === p2Id o se uno dei due non ha mai giocato.
+ * `matches` è ordinato per data desc (più recenti prima).
+ */
+export function computeHeadToHead(
+  p1Id: string,
+  p2Id: string,
+  results: ScoringResult[],
+): HeadToHeadResult | null {
+  if (p1Id === p2Id) return null;
+
+  type MatchEntry = { matchId: string; date: Date; p1?: ScoringResult; p2?: ScoringResult };
+  const byMatch: Record<string, MatchEntry> = {};
+  let p1Info: { id: string; name: string } | null = null;
+  let p2Info: { id: string; name: string } | null = null;
+
+  for (const r of results) {
+    if (r.playerId !== p1Id && r.playerId !== p2Id) continue;
+    if (r.playerId === p1Id && !p1Info) p1Info = { id: p1Id, name: r.player.name };
+    if (r.playerId === p2Id && !p2Info) p2Info = { id: p2Id, name: r.player.name };
+
+    if (!byMatch[r.matchId]) {
+      byMatch[r.matchId] = { matchId: r.matchId, date: r.match.date };
+    }
+    if (r.playerId === p1Id) byMatch[r.matchId].p1 = r;
+    else byMatch[r.matchId].p2 = r;
+  }
+
+  if (!p1Info || !p2Info) return null;
+
+  const shared = Object.values(byMatch).filter((e) => e.p1 && e.p2);
+  shared.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  let p1Wins = 0;
+  let p2Wins = 0;
+  let ties = 0;
+  const matches: H2HMatch[] = shared.map((e) => {
+    const m1 = e.p1!.medal;
+    const m2 = e.p2!.medal;
+    let winner: 'p1' | 'p2' | 'tie';
+    if (MEDAL_RANK[m1] < MEDAL_RANK[m2]) { winner = 'p1'; p1Wins++; }
+    else if (MEDAL_RANK[m1] > MEDAL_RANK[m2]) { winner = 'p2'; p2Wins++; }
+    else { winner = 'tie'; ties++; }
+    return { matchId: e.matchId, date: e.date, p1Medal: m1, p2Medal: m2, winner };
+  });
+
+  return {
+    p1: p1Info,
+    p2: p2Info,
+    totalMatches: matches.length,
+    p1Wins,
+    p2Wins,
+    ties,
+    matches,
+  };
+}
 
 const DEFAULTS: Required<ScoringOptions> = {
   recentWindow: 5,

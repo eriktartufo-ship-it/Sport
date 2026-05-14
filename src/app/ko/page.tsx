@@ -6,6 +6,7 @@ import MatchHistory, { type Match } from '@/components/MatchHistory';
 import StatsCharts from '@/components/StatsCharts';
 import SlideTabs from '@/components/SlideTabs';
 import SeasonSelector from '@/components/SeasonSelector';
+import HeadToHead from '@/components/HeadToHead';
 
 type Trend = 'up' | 'down' | 'stable' | 'unknown';
 
@@ -25,12 +26,13 @@ type PlayerStat = {
 };
 
 type Player = { id: string; name: string };
-type TabId = 'classifica' | 'grafici' | 'dati' | 'player';
+type TabId = 'classifica' | 'grafici' | 'dati' | 'h2h' | 'player';
 
 const DASHBOARD_TABS = [
   { id: 'classifica' as const, label: 'Classifica', short: 'Top', icon: '🏆' },
   { id: 'grafici' as const, label: 'Grafici', short: 'Stats', icon: '📈' },
   { id: 'dati' as const, label: 'Dati', short: 'Match', icon: '📋' },
+  { id: 'h2h' as const, label: 'Confronto', short: 'H2H', icon: '⚔️' },
   { id: 'player' as const, label: 'Player', short: 'Player', icon: '👥' },
 ];
 
@@ -169,7 +171,7 @@ export default function KODashboard() {
 
       <div className="dashboard-header">
         <h1 className="title dashboard-title">K.O.</h1>
-        {activeTab !== 'player' && (
+        {activeTab !== 'player' && activeTab !== 'h2h' && (
           <SeasonSelector seasons={seasons} value={season} onChange={setSeason} />
         )}
       </div>
@@ -260,6 +262,8 @@ export default function KODashboard() {
             {loading ? <p>Caricamento...</p> : <MatchHistory matches={matches} isAdmin={isAuthenticated} />}
           </div>
         )}
+
+        {activeTab === 'h2h' && <HeadToHead players={players} />}
 
         {activeTab === 'player' && (
           <div className="card">

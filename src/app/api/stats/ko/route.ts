@@ -29,6 +29,7 @@ export async function GET(request: Request) {
 
     const stats = computePlayerStats(
       results.map((r) => ({
+        matchId: r.matchId,
         playerId: r.playerId,
         medal: r.medal as Medal,
         player: { name: r.player.name },

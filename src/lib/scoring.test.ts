@@ -1,16 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import {
   computePlayerStats,
+  computeHeadToHead,
   SCORE_BY_MEDAL,
+  MEDAL_RANK,
   type ScoringResult,
 } from './scoring';
 
+let __matchSeq = 0;
 const r = (
   playerId: string,
   playerName: string,
   medal: ScoringResult['medal'],
   dateIso: string,
+  matchId?: string,
 ): ScoringResult => ({
+  matchId: matchId ?? `m-${++__matchSeq}`,
   playerId,
   medal,
   player: { name: playerName },
@@ -185,5 +190,83 @@ describe('computePlayerStats — più player nella stessa partita', () => {
     expect(stats.find((s) => s.id === 'p2')?.score).toBe(5);
     expect(stats.find((s) => s.id === 'p3')?.score).toBe(2);
     expect(stats.find((s) => s.id === 'p4')?.score).toBe(0);
+  });
+});
+
+describe('computeHeadToHead', () => {
+  it('MEDAL_RANK: GOLD < SILVER < BRONZE < NONE', () => {
+    expect(MEDAL_RANK).toEqual({ GOLD: 0, SILVER: 1, BRONZE: 2, NONE: 3 });
+  });
+
+  it('ritorna null se p1Id === p2Id', () => {
+    expect(computeHeadToHead('p1', 'p1', [])).toBeNull();
+  });
+
+  it('ritorna null se uno dei due non ha mai giocato', () => {
+    const results = [
+      r('p1', 'Mario', 'GOLD', '2026-05-01', 'm1'),
+    ];
+    expect(computeHeadToHead('p1', 'p2', results)).toBeNull();
+  });
+
+  it('conta solo le partite in cui entrambi hanno giocato', () => {
+    const results = [
+      // m1: solo p1
+      r('p1', 'Mario', 'GOLD', '2026-05-01', 'm1'),
+      // m2: solo p2
+      r('p2', 'Luigi', 'GOLD', '2026-05-02', 'm2'),
+      // m3: entrambi (p1 vince, GOLD vs SILVER)
+      r('p1', 'Mario', 'GOLD', '2026-05-03', 'm3'),
+      r('p2', 'Luigi', 'SILVER', '2026-05-03', 'm3'),
+    ];
+    const h2h = computeHeadToHead('p1', 'p2', results);
+    expect(h2h).not.toBeNull();
+    expect(h2h!.totalMatches).toBe(1);
+    expect(h2h!.p1Wins).toBe(1);
+    expect(h2h!.p2Wins).toBe(0);
+  });
+
+  it("vince il rank più basso (GOLD batte SILVER batte BRONZE batte NONE)", () => {
+    const results = [
+      // m1: p1 GOLD vs p2 SILVER → p1 wins
+      r('p1', 'Mario', 'GOLD', '2026-05-01', 'm1'),
+      r('p2', 'Luigi', 'SILVER', '2026-05-01', 'm1'),
+      // m2: p1 SILVER vs p2 BRONZE → p1 wins
+      r('p1', 'Mario', 'SILVER', '2026-05-02', 'm2'),
+      r('p2', 'Luigi', 'BRONZE', '2026-05-02', 'm2'),
+      // m3: p1 NONE vs p2 GOLD → p2 wins
+      r('p1', 'Mario', 'NONE', '2026-05-03', 'm3'),
+      r('p2', 'Luigi', 'GOLD', '2026-05-03', 'm3'),
+      // m4: entrambi NONE → tie
+      r('p1', 'Mario', 'NONE', '2026-05-04', 'm4'),
+      r('p2', 'Luigi', 'NONE', '2026-05-04', 'm4'),
+    ];
+    const h2h = computeHeadToHead('p1', 'p2', results)!;
+    expect(h2h.totalMatches).toBe(4);
+    expect(h2h.p1Wins).toBe(2);
+    expect(h2h.p2Wins).toBe(1);
+    expect(h2h.ties).toBe(1);
+  });
+
+  it('matches sono ordinati per data desc (più recenti prima)', () => {
+    const results = [
+      r('p1', 'A', 'GOLD', '2026-05-01', 'old'),
+      r('p2', 'B', 'SILVER', '2026-05-01', 'old'),
+      r('p1', 'A', 'SILVER', '2026-05-05', 'new'),
+      r('p2', 'B', 'GOLD', '2026-05-05', 'new'),
+    ];
+    const h2h = computeHeadToHead('p1', 'p2', results)!;
+    expect(h2h.matches[0].matchId).toBe('new');
+    expect(h2h.matches[1].matchId).toBe('old');
+  });
+
+  it('popolato p1.name e p2.name dal primo result trovato', () => {
+    const results = [
+      r('p1', 'Mario', 'GOLD', '2026-05-01', 'm1'),
+      r('p2', 'Luigi', 'SILVER', '2026-05-01', 'm1'),
+    ];
+    const h2h = computeHeadToHead('p1', 'p2', results)!;
+    expect(h2h.p1).toEqual({ id: 'p1', name: 'Mario' });
+    expect(h2h.p2).toEqual({ id: 'p2', name: 'Luigi' });
   });
 });
