@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.2 — 2026-05-14 (post pack #21 — soft-delete player + restore)
+> Versione: 2.3 — 2026-05-14 (post pack #22 — Export CSV + Polish Glass)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -142,8 +142,10 @@ nelle card mobile e nel tooltip mostra i due valori.
 | DELETE | `/api/matches/ko/[id]` | admin | cancella partita + cascade dei suoi MatchResult |
 | GET | `/api/stats/ko?season=YYYY` | pubblico | classifica con filtro stagione opzionale + trend/streak/bestWeek |
 | GET | `/api/stats/h2h?p1=&p2=` | pubblico | confronto diretto: wins/ties/cronologia. 400 missing/uguale, 404 player inesistente |
-| GET | `/api/db/export` | admin | binario SQLite |
+| GET | `/api/db/export` | admin | binario SQLite (backup completo) |
 | POST | `/api/db/import` | admin | multipart, distruttivo |
+| GET | `/api/export/csv/leaderboard?season=YYYY` | pubblico | classifica in CSV (UTF-8 BOM) per Excel/Sheets |
+| GET | `/api/export/csv/matches?season=YYYY` | pubblico | cronologia flat 1-riga-per-MatchResult in CSV |
 
 ## Persistenza del database
 
