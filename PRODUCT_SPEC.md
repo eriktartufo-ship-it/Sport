@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.6 — 2026-05-15 (post pack #25 — coerenza Liquid Glass globale)
+> Versione: 2.7 — 2026-05-16 (post pack #26 — pill 999 totale + FAB nav-like)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
