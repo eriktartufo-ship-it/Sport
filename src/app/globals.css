@@ -422,13 +422,62 @@ button {
 .slide-tab:hover { color: var(--foreground); }
 .slide-tab.active { color: #93c5fd; }
 
-/* Tab CTA: bottone "+ Registra" — è un Link, non un tab di stato.
-   Stile separato per distinguerlo (verde Apple-ish). */
+/* Tab CTA (legacy, ora il "Registra" è un FAB separato, non più tab).
+   Lascio le regole per compatibilità: se in futuro vogliamo riusare
+   variant=cta su altri tab, lo stile è pronto. */
 .slide-tab-cta {
   color: #10b981;
   font-weight: 700;
 }
 .slide-tab-cta:hover { color: #34d399; }
+
+/* FAB "Registra partita" — pattern WhatsApp/Material: cerchio verde
+   fisso sopra il nav a destra. Verde per distinguerlo dal blu della
+   tab attiva e per indicare un'azione di creazione. */
+.register-fab {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0) + 5.5rem + var(--nav-bottom-offset, 0px));
+  right: 1rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #10b981;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  z-index: 99;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 8px 24px -2px rgba(16, 185, 129, 0.45);
+  transition: var(--transition);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.register-fab:hover {
+  background: #34d399;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 12px 28px -2px rgba(16, 185, 129, 0.6);
+}
+
+.register-fab:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@media (max-width: 480px) {
+  .register-fab {
+    bottom: calc(env(safe-area-inset-bottom, 0) + 5rem + var(--nav-bottom-offset, 0px));
+    right: 0.85rem;
+    width: 52px;
+    height: 52px;
+    font-size: 1.35rem;
+  }
+}
 
 .slide-tab-icon { font-size: 1rem; line-height: 1; }
 .slide-tab-short { display: none; }
@@ -549,12 +598,13 @@ button {
 .player-card {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.7rem 0.85rem;
-  border-radius: 10px;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  /* pill totale, coerente con il nav e .player-pill */
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--card-border);
-  min-height: 48px;
+  border: 1px solid var(--glass-border);
+  min-height: 52px;
 }
 
 .player-card-name {
@@ -1292,9 +1342,10 @@ button {
   gap: 0.4rem;
   padding: 0.85rem 1rem;
   min-height: 56px;
-  border-radius: 14px;
-  border: 1px solid var(--card-border);
-  background: rgba(255, 255, 255, 0.03);
+  /* border-radius pill totale, coerente con il nav .slide-tabs */
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--foreground);
   font-weight: 600;
   font-size: 1rem;

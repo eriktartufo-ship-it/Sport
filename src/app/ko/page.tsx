@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import MatchHistory, { type Match } from '@/components/MatchHistory';
 import StatsCharts from '@/components/StatsCharts';
-import SlideTabs from '@/components/SlideTabs';
 import SeasonSelector from '@/components/SeasonSelector';
 import HeadToHead from '@/components/HeadToHead';
+import RegisterFab from '@/components/RegisterFab';
 
 type Trend = 'up' | 'down' | 'stable' | 'unknown';
 
@@ -31,25 +32,7 @@ type PlayerStat = {
 type Player = { id: string; name: string; deletedAt?: string | null };
 type TabId = 'classifica' | 'grafici' | 'dati' | 'h2h' | 'player';
 
-const DASHBOARD_TABS_BASE = [
-  { id: 'classifica' as const, label: 'Classifica', short: 'Top', icon: '🏆' },
-  { id: 'grafici' as const, label: 'Grafici', short: 'Stats', icon: '📈' },
-  { id: 'dati' as const, label: 'Dati', short: 'Match', icon: '📋' },
-  { id: 'h2h' as const, label: 'Confronto', short: 'H2H', icon: '⚔️' },
-  { id: 'player' as const, label: 'Player', short: 'Player', icon: '👥' },
-];
-
-// CTA "Registra partita" disponibile solo se admin loggato.
-// È un Link (href), non un tab di stato: cliccarlo naviga a /ko/new-match,
-// NON sposta il pill highlight della tab attiva.
-const REGISTER_TAB = {
-  id: 'register' as const,
-  label: 'Registra',
-  short: '+',
-  icon: '➕',
-  href: '/ko/new-match',
-  variant: 'cta' as const,
-};
+const VALID_TABS: TabId[] = ['classifica', 'grafici', 'dati', 'h2h', 'player'];
 
 const TREND_ICON: Record<Trend, string> = {
   up: '↗',
@@ -79,8 +62,15 @@ export default function KODashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>('classifica');
   const [showDeletedPlayers, setShowDeletedPlayers] = useState(false);
+
+  // activeTab è derived da ?tab= nell'URL (gestito dal nav nel layout).
+  // Default 'classifica' se param mancante/non valido.
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const activeTab: TabId = VALID_TABS.includes(tabParam as TabId)
+    ? (tabParam as TabId)
+    : 'classifica';
 
   const load = useCallback(async (currentSeason: number | 'all', includeDeletedPlayers = false) => {
     setLoading(true);
@@ -200,19 +190,10 @@ export default function KODashboard() {
 
   return (
     <div>
-      <div className="dashboard-tabs-sticky">
-        <SlideTabs
-          tabs={isAuthenticated ? [...DASHBOARD_TABS_BASE, REGISTER_TAB] : DASHBOARD_TABS_BASE}
-          active={activeTab}
-          /* REGISTER_TAB ha href → SlideTabs non chiamerà mai onChange con
-             'register'. Ma TS non sa restringere il tipo, quindi il wrapper
-             filtra esplicitamente per sicurezza. */
-          onChange={(id) => {
-            if (id === 'register') return;
-            setActiveTab(id);
-          }}
-        />
-      </div>
+      {/* Il nav (DashboardNav) è montato nel ko/layout.tsx, visibile su
+          tutte le pagine /ko/*. Qui sotto solo il content. */}
+
+      <RegisterFab visible={isAuthenticated} />
 
       <div className="dashboard-header">
         <h1 className="title dashboard-title">K.O.</h1>

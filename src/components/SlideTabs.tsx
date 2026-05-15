@@ -26,9 +26,10 @@ export default function SlideTabs<TId extends string>({ tabs, active, onChange }
   const [pill, setPill] = useState({ left: 0, width: 0, opacity: 0 });
 
   useEffect(() => {
-    // Il pill highlight segue SOLO i tab senza href (cioè quelli che
-    // partecipano a activeTab). Gli href-tab sono link, non stato.
-    const idx = tabs.findIndex((t) => !t.href && t.id === active);
+    // Il pill highlight segue il tab con id=active, anche se è un href-tab.
+    // Cosi' il nav funziona uniformemente sia con tab di stato (button)
+    // sia con tab di navigazione (Link) — comportamento atteso a livello UX.
+    const idx = tabs.findIndex((t) => t.id === active);
 
     const update = () => {
       const el = refs.current[idx];
@@ -56,7 +57,7 @@ export default function SlideTabs<TId extends string>({ tabs, active, onChange }
       {tabs.map((tab, i) => {
         const className = [
           'slide-tab',
-          !tab.href && active === tab.id ? 'active' : '',
+          active === tab.id ? 'active' : '',
           tab.variant === 'cta' ? 'slide-tab-cta' : '',
         ].filter(Boolean).join(' ');
 
