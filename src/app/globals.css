@@ -462,10 +462,10 @@ button {
 }
 .slide-tab-cta:hover { color: #34d399; }
 
-/* FAB "Registra partita" — Liquid Glass coerente col nav:
-   cerchio blu primary semi-trasparente con backdrop-filter, inner
-   highlight Apple-style, glow blu sotto. Pattern WhatsApp ma stile
-   coerente col resto dell'app. */
+/* FAB "Registra partita" — Liquid Glass IDENTICO al nav:
+   stesso bg dark trasparente, stesso blur, stesso border. L'utente lo
+   distingue per posizione (cerchio fluttuante alto-dx) e per il "+"
+   bianco al centro, NON per un colore diverso. */
 .register-fab {
   position: fixed;
   bottom: calc(env(safe-area-inset-bottom, 0) + 5.5rem + var(--nav-bottom-offset, 0px));
@@ -473,31 +473,32 @@ button {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(59, 130, 246, 0.78);
+  background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(96, 165, 250, 0.55);
+  border: 1px solid var(--glass-border);
   color: white;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
   z-index: 99;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 8px 24px -2px rgba(59, 130, 246, 0.4);
+    inset 0 1px 0 var(--glass-highlight),
+    var(--glass-shadow);
   transition: var(--transition);
   text-decoration: none;
   cursor: pointer;
 }
 
 .register-fab:hover {
-  background: rgba(59, 130, 246, 0.92);
+  background: rgba(20, 25, 42, 0.75);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px) scale(1.04);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 12px 28px -2px rgba(59, 130, 246, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
 .register-fab:active {
@@ -911,7 +912,8 @@ button {
 .mc-medal {
   background: rgba(0, 0, 0, 0.25);
   padding: 0.7rem 0.4rem;
-  border-radius: 8px;
+  /* pill totale, coerenza con il resto del linguaggio visivo */
+  border-radius: 999px;
   text-align: center;
   font-size: 1.4rem;
   font-weight: 700;
@@ -939,8 +941,9 @@ button {
   gap: 0.15rem;
   background: rgba(0, 0, 0, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 0.4rem 0.3rem;
+  /* pill totale, coerenza con .mc-medal e gli altri elementi rotondi */
+  border-radius: 999px;
+  padding: 0.4rem 0.5rem;
   min-height: 44px;
 }
 .mc-stat-label {
@@ -1291,11 +1294,12 @@ button {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
+  /* pill totale, coerenza con il resto del linguaggio visivo */
   gap: 1rem;
-  padding: 1.2rem 0.5rem;
+  padding: 1.2rem 1.25rem;
   background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
 }
 
 .h2h-side {
@@ -1367,10 +1371,11 @@ button {
   grid-template-columns: auto 1fr auto;
   gap: 0.75rem;
   align-items: center;
-  padding: 0.6rem 0.85rem;
+  padding: 0.6rem 1.1rem;
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  /* pill totale, coerenza con il resto */
+  border-radius: 999px;
   font-size: 0.9rem;
 }
 

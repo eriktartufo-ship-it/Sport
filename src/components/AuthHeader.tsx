@@ -73,7 +73,7 @@ export default function AuthHeader() {
         {authenticated === null ? null : authenticated ? (
           <>
             <span className="auth-pill auth-pill-on" title="Sei loggato come admin">🔓 Admin</span>
-            <button onClick={handleLogout} className="btn btn-ghost">Logout</button>
+            <button onClick={handleLogout} className="btn btn-ghost btn-sm">Logout</button>
           </>
         ) : showLoginForm ? (
           <form onSubmit={handleLogin} className="header-login-form">
