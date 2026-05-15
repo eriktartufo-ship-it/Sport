@@ -157,23 +157,17 @@ export default function NewKOMatch() {
 
       <div className="card" style={{ marginBottom: '2rem', background: 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)' }}>
         <h2 style={{ marginBottom: '1rem' }}>1. Seleziona i partecipanti</h2>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div className="player-picker-grid">
           {players.map(p => {
             const isSelected = selectedPlayers.includes(p.id);
             return (
               <button
                 key={p.id}
                 onClick={() => togglePlayer(p.id)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '20px',
-                  border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--card-border)'}`,
-                  background: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                  color: 'white',
-                  transition: 'all 0.2s'
-                }}
+                className={`player-pill${isSelected ? ' player-pill-selected' : ''}`}
               >
-                {p.name}
+                <span className="player-pill-name">{p.name}</span>
+                {isSelected && <span className="player-pill-check" aria-hidden="true">✓</span>}
               </button>
             )
           })}

@@ -1,16 +1,9 @@
-import Link from 'next/link';
-
 export default function KOLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return (
-    <div>
-      <nav style={{ marginBottom: '2rem', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <Link href="/" style={{ color: 'var(--primary)', fontWeight: 600 }}>&larr; Torna alla Home</Link>
-      </nav>
-      {children}
-    </div>
-  )
+  // Niente "Torna alla home": il brand 🏀 Sport in alto-sinistra
+  // dell'AuthHeader (globale) già fa da link alla home.
+  return <div>{children}</div>;
 }

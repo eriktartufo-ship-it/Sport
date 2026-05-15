@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 
 export default function SettingsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -71,10 +70,7 @@ export default function SettingsPage() {
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem 0' }}>
-      <nav style={{ marginBottom: '2rem' }}>
-        <Link href="/" style={{ color: 'var(--primary)', fontWeight: 600 }}>&larr; Torna alla Home</Link>
-      </nav>
-
+      {/* Brand AuthHeader (in alto-sx) gia' linka alla home. */}
       <h1 className="title" style={{ fontSize: '2.5rem', textAlign: 'left' }}>Impostazioni</h1>
 
       {!isAuthenticated ? (

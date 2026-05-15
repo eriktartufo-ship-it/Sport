@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 
 export type SlideTab<TId extends string> = {
   id: TId;
   label: string;
   short?: string;
   icon?: string;
+  /** Se presente, il "tab" è in realtà un link a quella route e NON
+   *  partecipa allo stato attivo (no pill highlight, no onChange). */
+  href?: string;
+  /** Variant visivo: 'cta' lo evidenzia come call-to-action separata. */
+  variant?: 'default' | 'cta';
 };
 
 type Props<TId extends string> = {
@@ -16,16 +22,20 @@ type Props<TId extends string> = {
 };
 
 export default function SlideTabs<TId extends string>({ tabs, active, onChange }: Props<TId>) {
-  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const refs = useRef<(HTMLElement | null)[]>([]);
   const [pill, setPill] = useState({ left: 0, width: 0, opacity: 0 });
 
   useEffect(() => {
-    const idx = tabs.findIndex((t) => t.id === active);
+    // Il pill highlight segue SOLO i tab senza href (cioè quelli che
+    // partecipano a activeTab). Gli href-tab sono link, non stato.
+    const idx = tabs.findIndex((t) => !t.href && t.id === active);
 
     const update = () => {
       const el = refs.current[idx];
-      if (el) {
+      if (el && idx >= 0) {
         setPill({ left: el.offsetLeft, width: el.clientWidth, opacity: 1 });
+      } else {
+        setPill((p) => ({ ...p, opacity: 0 }));
       }
     };
 
@@ -43,20 +53,48 @@ export default function SlideTabs<TId extends string>({ tabs, active, onChange }
         className="slide-tabs-highlight"
         style={{ left: pill.left, width: pill.width, opacity: pill.opacity }}
       />
-      {tabs.map((tab, i) => (
-        <button
-          key={tab.id}
-          ref={(el) => { refs.current[i] = el; }}
-          role="tab"
-          aria-selected={active === tab.id}
-          className={`slide-tab ${active === tab.id ? 'active' : ''}`}
-          onClick={() => onChange(tab.id)}
-        >
-          {tab.icon && <span className="slide-tab-icon" aria-hidden="true">{tab.icon}</span>}
-          <span className="slide-tab-label">{tab.label}</span>
-          {tab.short && <span className="slide-tab-short">{tab.short}</span>}
-        </button>
-      ))}
+      {tabs.map((tab, i) => {
+        const className = [
+          'slide-tab',
+          !tab.href && active === tab.id ? 'active' : '',
+          tab.variant === 'cta' ? 'slide-tab-cta' : '',
+        ].filter(Boolean).join(' ');
+
+        const inner = (
+          <>
+            {tab.icon && <span className="slide-tab-icon" aria-hidden="true">{tab.icon}</span>}
+            <span className="slide-tab-label">{tab.label}</span>
+            {tab.short && <span className="slide-tab-short">{tab.short}</span>}
+          </>
+        );
+
+        if (tab.href) {
+          return (
+            <Link
+              key={tab.id}
+              ref={(el) => { refs.current[i] = el as HTMLElement | null; }}
+              href={tab.href}
+              role="tab"
+              className={className}
+            >
+              {inner}
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={tab.id}
+            ref={(el) => { refs.current[i] = el as HTMLElement | null; }}
+            role="tab"
+            aria-selected={active === tab.id}
+            className={className}
+            onClick={() => onChange(tab.id)}
+          >
+            {inner}
+          </button>
+        );
+      })}
     </div>
   );
 }

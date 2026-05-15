@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
 import MatchHistory, { type Match } from '@/components/MatchHistory';
 import StatsCharts from '@/components/StatsCharts';
 import SlideTabs from '@/components/SlideTabs';
@@ -32,13 +31,25 @@ type PlayerStat = {
 type Player = { id: string; name: string; deletedAt?: string | null };
 type TabId = 'classifica' | 'grafici' | 'dati' | 'h2h' | 'player';
 
-const DASHBOARD_TABS = [
+const DASHBOARD_TABS_BASE = [
   { id: 'classifica' as const, label: 'Classifica', short: 'Top', icon: '🏆' },
   { id: 'grafici' as const, label: 'Grafici', short: 'Stats', icon: '📈' },
   { id: 'dati' as const, label: 'Dati', short: 'Match', icon: '📋' },
   { id: 'h2h' as const, label: 'Confronto', short: 'H2H', icon: '⚔️' },
   { id: 'player' as const, label: 'Player', short: 'Player', icon: '👥' },
 ];
+
+// CTA "Registra partita" disponibile solo se admin loggato.
+// È un Link (href), non un tab di stato: cliccarlo naviga a /ko/new-match,
+// NON sposta il pill highlight della tab attiva.
+const REGISTER_TAB = {
+  id: 'register' as const,
+  label: 'Registra',
+  short: '+',
+  icon: '➕',
+  href: '/ko/new-match',
+  variant: 'cta' as const,
+};
 
 const TREND_ICON: Record<Trend, string> = {
   up: '↗',
@@ -190,7 +201,17 @@ export default function KODashboard() {
   return (
     <div>
       <div className="dashboard-tabs-sticky">
-        <SlideTabs tabs={DASHBOARD_TABS} active={activeTab} onChange={setActiveTab} />
+        <SlideTabs
+          tabs={isAuthenticated ? [...DASHBOARD_TABS_BASE, REGISTER_TAB] : DASHBOARD_TABS_BASE}
+          active={activeTab}
+          /* REGISTER_TAB ha href → SlideTabs non chiamerà mai onChange con
+             'register'. Ma TS non sa restringere il tipo, quindi il wrapper
+             filtra esplicitamente per sicurezza. */
+          onChange={(id) => {
+            if (id === 'register') return;
+            setActiveTab(id);
+          }}
+        />
       </div>
 
       <div className="dashboard-header">
@@ -200,11 +221,7 @@ export default function KODashboard() {
         )}
       </div>
 
-      {isAuthenticated && (
-        <div className="dashboard-actions">
-          <Link href="/ko/new-match" className="btn">+ Registra Partita</Link>
-        </div>
-      )}
+      {/* Il pulsante "+ Registra Partita" è ora nel nav (tab CTA visibile solo se admin). */}
       {!isAuthenticated && activeTab === 'player' && (
         <p className="muted" style={{ marginBottom: '1.5rem' }}>
           Effettua il login dall&apos;header per gestire i giocatori.

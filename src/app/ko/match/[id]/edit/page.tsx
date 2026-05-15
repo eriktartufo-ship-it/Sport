@@ -181,24 +181,17 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
 
       <div className="card" style={{ marginBottom: '2rem' }}>
         <h2 style={{ marginBottom: '1rem' }}>1. Partecipanti</h2>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div className="player-picker-grid">
           {allPlayers.map((p) => {
             const isSelected = selectedPlayers.includes(p.id);
             return (
               <button
                 key={p.id}
                 onClick={() => togglePlayer(p.id)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '20px',
-                  border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--card-border)'}`,
-                  background: isSelected ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                  color: 'white',
-                  transition: 'all 0.2s',
-                  minHeight: '40px',
-                }}
+                className={`player-pill${isSelected ? ' player-pill-selected' : ''}`}
               >
-                {p.name}
+                <span className="player-pill-name">{p.name}</span>
+                {isSelected && <span className="player-pill-check" aria-hidden="true">✓</span>}
               </button>
             );
           })}
