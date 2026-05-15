@@ -165,7 +165,7 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
 
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <h1 className="title" style={{ fontSize: '2.5rem', textAlign: 'left' }}>Modifica Partita K.O.</h1>
+      <h1 className="title match-form-title">Modifica Partita K.O.</h1>
 
       <div className="card" style={{ marginBottom: '2rem' }}>
         <h2 style={{ marginBottom: '1rem' }}>Data della partita</h2>

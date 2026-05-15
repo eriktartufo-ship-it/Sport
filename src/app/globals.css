@@ -78,6 +78,22 @@ button {
   -webkit-text-fill-color: transparent;
 }
 
+/* Titolo pagine form (nuova/modifica partita): stesso gradient .title
+   ma fluid font-size con clamp() per stare su UNA riga su qualunque
+   device, da iPhone SE (320px) a desktop wide. */
+.match-form-title {
+  text-align: left;
+  margin-bottom: 1.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* clamp(min, preferred, max):
+     min  1.3rem  (~21px su iPhone SE 320px, stringa "Modifica Partita K.O." ~250px → ok)
+     pref 6vw + 0.5rem  (scala col viewport)
+     max  2.5rem (40px desktop) */
+  font-size: clamp(1.3rem, 6vw + 0.5rem, 2.5rem);
+}
+
 @media (max-width: 768px) {
   .title {
     font-size: 2rem;
@@ -176,20 +192,26 @@ button {
   padding: 0.45rem 0.95rem;
   font-size: 0.85rem;
   min-height: 36px;
+  /* btn-sm di solito sono action secondarie nell'header → pill */
+  border-radius: 999px;
 }
 
 .btn-ghost {
-  background: transparent;
-  border: 1px solid var(--card-border);
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
   color: var(--foreground);
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: none;
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .medal-gold { color: var(--gold); }
@@ -284,28 +306,37 @@ button {
   flex-wrap: wrap;
 }
 
+/* Ingranaggio settings nell'header: cerchiato con stile glass coerente
+   (come gli altri controlli rotondi). */
 .app-header-link {
-  font-size: 1.2rem;
-  opacity: 0.75;
+  font-size: 1.05rem;
   transition: var(--transition);
-  padding: 0.4rem;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 38px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
 }
 
 .app-header-link:hover {
-  opacity: 1;
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--foreground);
 }
 
 .auth-pill {
   font-size: 0.8rem;
-  padding: 0.3rem 0.7rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 999px;
-  border: 1px solid var(--card-border);
-  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
   white-space: nowrap;
 }
 
@@ -431,9 +462,10 @@ button {
 }
 .slide-tab-cta:hover { color: #34d399; }
 
-/* FAB "Registra partita" — pattern WhatsApp/Material: cerchio verde
-   fisso sopra il nav a destra. Verde per distinguerlo dal blu della
-   tab attiva e per indicare un'azione di creazione. */
+/* FAB "Registra partita" — Liquid Glass coerente col nav:
+   cerchio blu primary semi-trasparente con backdrop-filter, inner
+   highlight Apple-style, glow blu sotto. Pattern WhatsApp ma stile
+   coerente col resto dell'app. */
 .register-fab {
   position: fixed;
   bottom: calc(env(safe-area-inset-bottom, 0) + 5.5rem + var(--nav-bottom-offset, 0px));
@@ -441,7 +473,10 @@ button {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: #10b981;
+  background: rgba(59, 130, 246, 0.78);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(96, 165, 250, 0.55);
   color: white;
   display: inline-flex;
   align-items: center;
@@ -451,18 +486,18 @@ button {
   z-index: 99;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 8px 24px -2px rgba(16, 185, 129, 0.45);
+    0 8px 24px -2px rgba(59, 130, 246, 0.4);
   transition: var(--transition);
   text-decoration: none;
   cursor: pointer;
 }
 
 .register-fab:hover {
-  background: #34d399;
+  background: rgba(59, 130, 246, 0.92);
   transform: translateY(-2px) scale(1.04);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 12px 28px -2px rgba(16, 185, 129, 0.6);
+    0 12px 28px -2px rgba(59, 130, 246, 0.55);
 }
 
 .register-fab:active {
@@ -576,17 +611,63 @@ button {
   min-width: 0;
 }
 
-/* Player tab */
-.add-player-form-inline {
+/* Player tab — riga compatta "Aggiungi giocatore [nome] +" */
+.add-player-inline {
   display: flex;
-  gap: 0.6rem;
+  gap: 0.5rem;
   margin-bottom: 1.25rem;
-  flex-wrap: wrap;
+  align-items: stretch;
 }
 
-.add-player-form-inline .input {
-  flex: 1 1 240px;
+.add-player-input {
+  flex: 1 1 auto;
   min-width: 0;
+  border-radius: 999px;
+}
+
+/* Bottone "+" circolare blu primary glass, coerente col FAB ma più piccolo.
+   Usato per azioni "add inline" (es. aggiungi giocatore nella stessa riga
+   dell'input). */
+.icon-btn-cta {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.78);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(96, 165, 250, 0.5);
+  color: white;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 4px 12px -2px rgba(59, 130, 246, 0.35);
+  align-self: center;
+}
+
+.icon-btn-cta:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.92);
+  transform: translateY(-1px) scale(1.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 6px 16px -2px rgba(59, 130, 246, 0.5);
+}
+
+.icon-btn-cta:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+}
+
+.icon-btn-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .player-grid {
@@ -621,7 +702,7 @@ button {
   gap: 0.25rem;
 }
 
-/* Season selector */
+/* Season selector — pill glass coerente col nav */
 .season-selector {
   display: flex;
   align-items: center;
@@ -633,10 +714,34 @@ button {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.season-selector-select {
+.season-selector-select,
+.h2h-select {
   width: auto;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 2rem 0.5rem 1rem;
   min-height: 40px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 500;
+  /* Chevron custom via SVG inline (le freccette native dei select
+     sono brutte e incoerenti tra browser) */
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5l3 3 3-3' stroke='%23ffffff99' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  cursor: pointer;
+}
+
+.season-selector-select:hover,
+.h2h-select:hover {
+  background-color: rgba(0, 0, 0, 0.38);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Leaderboard table */

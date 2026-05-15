@@ -315,17 +315,24 @@ export default function KODashboard() {
             </div>
 
             {isAuthenticated && (
-              <form onSubmit={handleAddPlayer} className="add-player-form-inline">
+              <form onSubmit={handleAddPlayer} className="add-player-inline">
                 <input
                   type="text"
-                  className="input"
-                  placeholder="Nome del nuovo giocatore..."
+                  className="input add-player-input"
+                  placeholder="Aggiungi giocatore..."
                   value={newPlayerName}
                   onChange={(e) => setNewPlayerName(e.target.value)}
                   required
+                  aria-label="Nome del nuovo giocatore"
                 />
-                <button type="submit" className="btn" disabled={addingPlayer}>
-                  {addingPlayer ? 'Aggiunta...' : '+ Aggiungi'}
+                <button
+                  type="submit"
+                  className="icon-btn-cta"
+                  disabled={addingPlayer}
+                  aria-label="Aggiungi giocatore"
+                  title="Aggiungi giocatore"
+                >
+                  {addingPlayer ? '…' : '+'}
                 </button>
               </form>
             )}
