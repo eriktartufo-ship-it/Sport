@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.4 — 2026-05-14 (post pack #23 — UX cleanup: rm home link + grid bolle + CTA Registra nel nav)
+> Versione: 2.5 — 2026-05-15 (post pack #24 — nav globale /ko/* + FAB Registra + pill 999 coerenti)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
