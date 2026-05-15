@@ -200,6 +200,16 @@ export default function KODashboard() {
         {activeTab !== 'player' && activeTab !== 'h2h' && (
           <SeasonSelector seasons={seasons} value={season} onChange={setSeason} />
         )}
+        {activeTab === 'player' && isAuthenticated && (
+          <button
+            type="button"
+            className={`deleted-toggle${showDeletedPlayers ? ' is-active' : ''}`}
+            onClick={() => setShowDeletedPlayers((v) => !v)}
+            aria-pressed={showDeletedPlayers}
+          >
+            Mostra cancellati
+          </button>
+        )}
       </div>
 
       {/* Il pulsante "+ Registra Partita" è ora nel nav (tab CTA visibile solo se admin). */}
@@ -300,19 +310,7 @@ export default function KODashboard() {
 
         {activeTab === 'player' && (
           <div className="card">
-            <div className="player-tab-header">
-              <h2 className="card-title" style={{ margin: 0 }}>Giocatori</h2>
-              {isAuthenticated && (
-                <label className="show-deleted-toggle">
-                  <input
-                    type="checkbox"
-                    checked={showDeletedPlayers}
-                    onChange={(e) => setShowDeletedPlayers(e.target.checked)}
-                  />
-                  <span>Mostra cancellati</span>
-                </label>
-              )}
-            </div>
+            <h2 className="card-title">Giocatori</h2>
 
             {isAuthenticated && (
               <form onSubmit={handleAddPlayer} className="add-player-inline">
