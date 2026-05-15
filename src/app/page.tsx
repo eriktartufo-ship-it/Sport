@@ -4,10 +4,6 @@ export default function Home() {
   return (
     <div className="home-wrap">
       <h1 className="title">Seleziona uno Sport</h1>
-      <p className="home-lead">
-        Benvenuto nel nuovo tracker sportivo. Attualmente è disponibile il modulo per il gioco del K.O. (Basket).
-        Scegli lo sport per visualizzare le statistiche e aggiungere nuove partite.
-      </p>
 
       <div className="home-sport-list">
         <Link href="/ko" className="sport-card">

@@ -47,7 +47,15 @@ export default function MatchHistory({
         const others = m.results.filter((r) => r.medal === 'NONE');
         return (
           <div key={m.id} className="match-row">
-            <span className="match-row-date">{formatDate(m.date)}</span>
+            <div className="match-row-head">
+              <span className="match-row-date">{formatDate(m.date)}</span>
+              <span className="match-row-count">{m.playerCount} giocatori</span>
+              {isAdmin && (
+                <Link href={`/ko/match/${m.id}/edit`} className="match-row-edit" title="Modifica partita">
+                  ✏️
+                </Link>
+              )}
+            </div>
             <div className="match-row-players">
               <div className="match-row-podium">
                 {podium.map((r) => (
@@ -63,14 +71,6 @@ export default function MatchHistory({
                     <span key={r.id} className="match-row-others-item">{r.player.name}</span>
                   ))}
                 </div>
-              )}
-            </div>
-            <div className="match-row-meta">
-              <span className="match-row-count">{m.playerCount} giocatori</span>
-              {isAdmin && (
-                <Link href={`/ko/match/${m.id}/edit`} className="match-row-edit" title="Modifica partita">
-                  ✏️
-                </Link>
               )}
             </div>
           </div>

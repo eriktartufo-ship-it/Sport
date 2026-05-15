@@ -229,7 +229,7 @@ export default function NewKOMatch() {
 
       {selectedPlayers.length >= 3 && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
-          <button className="btn" onClick={handleSave} disabled={saving} style={{ fontSize: '1.2rem', padding: '1rem 3rem' }}>
+          <button className="btn btn-pill" onClick={handleSave} disabled={saving} style={{ fontSize: '1.2rem', padding: '1rem 3rem' }}>
             {saving ? 'Salvataggio...' : 'Salva Partita'}
           </button>
         </div>
