@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.5 — 2026-05-15 (post pack #24 — nav globale /ko/* + FAB Registra + pill 999 coerenti)
+> Versione: 2.6 — 2026-05-15 (post pack #25 — coerenza Liquid Glass globale)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
