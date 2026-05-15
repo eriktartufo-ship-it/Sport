@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.8 — 2026-05-16 (post pack #27 — pill 999 globale + home banner + form centrati)
+> Versione: 2.9 — 2026-05-16 (post pack #28 — fix CI Suspense + revert pill + titoli centrati + toggle cancellati)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
