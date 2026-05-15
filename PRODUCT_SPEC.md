@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 2.3 — 2026-05-14 (post pack #22 — Export CSV + Polish Glass)
+> Versione: 2.4 — 2026-05-14 (post pack #23 — UX cleanup: rm home link + grid bolle + CTA Registra nel nav)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
