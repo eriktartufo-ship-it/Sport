@@ -143,7 +143,7 @@ export default function NewKOMatch() {
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <h1 className="title match-form-title">Nuova Partita K.O.</h1>
 
-      <div className="card" style={{ marginBottom: '2rem' }}>
+      <div className="card match-form-card" style={{ marginBottom: '2rem' }}>
         <h2 style={{ marginBottom: '1rem' }}>Data della partita</h2>
         <input
           type="date"
@@ -151,11 +151,11 @@ export default function NewKOMatch() {
           value={matchDate}
           max={todayIso()}
           onChange={(e) => setMatchDate(e.target.value)}
-          style={{ maxWidth: '220px' }}
+          style={{ maxWidth: '220px', margin: '0 auto' }}
         />
       </div>
 
-      <div className="card" style={{ marginBottom: '2rem', background: 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)' }}>
+      <div className="card match-form-card" style={{ marginBottom: '2rem', background: 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)' }}>
         <h2 style={{ marginBottom: '1rem' }}>1. Seleziona i partecipanti</h2>
         <div className="player-picker-grid">
           {players.map(p => {
@@ -176,7 +176,7 @@ export default function NewKOMatch() {
       </div>
 
       {selectedPlayers.length > 0 && (
-        <div className="card animate-fade-in" style={{ marginBottom: '2rem', background: 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)' }}>
+        <div className="card match-form-card animate-fade-in" style={{ marginBottom: '2rem', background: 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9))', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)' }}>
           <h2 style={{ marginBottom: '1rem' }}>2. Assegna le Medaglie</h2>
           <p style={{ marginBottom: '1rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
             Giocatori in partita: <strong>{selectedPlayers.length}</strong> 
@@ -228,7 +228,7 @@ export default function NewKOMatch() {
       )}
 
       {selectedPlayers.length >= 3 && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
           <button className="btn" onClick={handleSave} disabled={saving} style={{ fontSize: '1.2rem', padding: '1rem 3rem' }}>
             {saving ? 'Salvataggio...' : 'Salva Partita'}
           </button>

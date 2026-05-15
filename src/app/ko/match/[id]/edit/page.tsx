@@ -167,7 +167,7 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <h1 className="title match-form-title">Modifica Partita K.O.</h1>
 
-      <div className="card" style={{ marginBottom: '2rem' }}>
+      <div className="card match-form-card" style={{ marginBottom: '2rem' }}>
         <h2 style={{ marginBottom: '1rem' }}>Data della partita</h2>
         <input
           type="date"
@@ -175,11 +175,11 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
           value={matchDate}
           max={dateToIso(new Date())}
           onChange={(e) => setMatchDate(e.target.value)}
-          style={{ maxWidth: '220px' }}
+          style={{ maxWidth: '220px', margin: '0 auto' }}
         />
       </div>
 
-      <div className="card" style={{ marginBottom: '2rem' }}>
+      <div className="card match-form-card" style={{ marginBottom: '2rem' }}>
         <h2 style={{ marginBottom: '1rem' }}>1. Partecipanti</h2>
         <div className="player-picker-grid">
           {allPlayers.map((p) => {
@@ -199,7 +199,7 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
       </div>
 
       {selectedPlayers.length > 0 && (
-        <div className="card animate-fade-in" style={{ marginBottom: '2rem' }}>
+        <div className="card match-form-card animate-fade-in" style={{ marginBottom: '2rem' }}>
           <h2 style={{ marginBottom: '1rem' }}>2. Medaglie</h2>
           <p style={{ marginBottom: '1rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
             Giocatori: <strong>{selectedPlayers.length}</strong>
@@ -246,22 +246,18 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '2rem' }}>
+      <div className="edit-match-actions">
         <button
-          className="btn btn-ghost"
+          className="btn btn-danger"
           onClick={handleDelete}
           disabled={deleting || saving}
-          style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}
         >
           {deleting ? 'Cancellazione...' : '🗑️ Cancella partita'}
         </button>
-
-        <div style={{ display: 'flex', gap: '0.6rem' }}>
-          <button className="btn btn-ghost" onClick={() => router.push('/ko')}>Annulla</button>
-          <button className="btn" onClick={handleSave} disabled={saving || selectedPlayers.length < 3}>
-            {saving ? 'Salvataggio...' : 'Salva modifiche'}
-          </button>
-        </div>
+        <button className="btn btn-ghost" onClick={() => router.push('/ko')}>Annulla</button>
+        <button className="btn" onClick={handleSave} disabled={saving || selectedPlayers.length < 3}>
+          {saving ? 'Salvataggio...' : 'Salva modifiche'}
+        </button>
       </div>
     </div>
   );

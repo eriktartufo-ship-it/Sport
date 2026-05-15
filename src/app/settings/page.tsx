@@ -97,7 +97,7 @@ export default function SettingsPage() {
             <p style={{ marginBottom: '1.5rem', color: 'rgba(255,255,255,0.7)' }}>
               Sei loggato come amministratore. Puoi registrare nuove partite e modificare i dati.
             </p>
-            <button onClick={handleLogout} className="btn" style={{ background: '#ef4444' }}>Esci</button>
+            <button onClick={handleLogout} className="btn btn-danger">Esci</button>
           </div>
 
           <div className="card">
@@ -143,14 +143,7 @@ export default function SettingsPage() {
                 type="file"
                 accept=".db"
                 onChange={handleImport}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  padding: '1rem',
-                  border: '1px dashed rgba(255,255,255,0.2)',
-                  borderRadius: '8px',
-                  cursor: 'pointer'
-                }}
+                className="file-input-pill"
               />
             </div>
           </div>
