@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 3.1 — 2026-05-16 (post pack #30 — brand casetta + legend centrata + date pill + btn-pair + settings pill)
+> Versione: 3.2 — 2026-05-16 (post pack #31 — chart-legend spacing + cumulative per giornata + Salva btn-pair + settings center)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
