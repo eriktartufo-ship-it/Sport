@@ -113,7 +113,7 @@ export default function StatsCharts({
   return (
     <div className="charts-stack">
       <div className="card chart-card">
-        <h3 className="chart-title">🏅 Distribuzione medaglie (top 8)</h3>
+        <h3 className="chart-title">🏅 Distribuzione medaglie (top 8) 🏅</h3>
         <ChartBox aspect={1.9} minHeight={280}>
           {({ width, height }) => (
             <BarChart
@@ -146,7 +146,7 @@ export default function StatsCharts({
 
       {progressionData.length > 0 && (
         <div className="card chart-card">
-          <h3 className="chart-title">📈 Punteggio cumulativo</h3>
+          <h3 className="chart-title">📈 Punteggio cumulativo 📈</h3>
           <p className="chart-desc">
             Tutti gli atleti, in ordine cronologico delle partite.
           </p>
@@ -240,7 +240,7 @@ function WeeklyTrendChart({
 
   return (
     <div className="card chart-card">
-      <h3 className="chart-title">🔥 Andamento settimanale</h3>
+      <h3 className="chart-title">🔥 Andamento settimanale 🔥</h3>
       <p className="chart-desc">
         Punti medi per partita di ogni atleta, settimana per settimana (ISO lun→dom). Un trend in salita = forma in crescita.
       </p>
