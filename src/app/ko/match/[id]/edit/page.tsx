@@ -255,7 +255,7 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
           {deleting ? 'Cancellazione...' : '🗑️ Cancella partita'}
         </button>
         <button className="btn btn-pill btn-ghost btn-pair" onClick={() => router.push('/ko')}>Annulla</button>
-        <button className="btn btn-pill" onClick={handleSave} disabled={saving || selectedPlayers.length < 3}>
+        <button className="btn btn-pill btn-pair" onClick={handleSave} disabled={saving || selectedPlayers.length < 3}>
           {saving ? 'Salvataggio...' : 'Salva modifiche'}
         </button>
       </div>

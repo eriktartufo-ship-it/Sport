@@ -69,21 +69,20 @@ export default function SettingsPage() {
   if (loading) return <p>Caricamento...</p>;
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem 0' }}>
-      {/* Brand AuthHeader (in alto-sx) gia' linka alla home. */}
-      <h1 className="title" style={{ fontSize: '2.5rem', textAlign: 'left' }}>Impostazioni</h1>
+    <div className="settings-wrap">
+      <h1 className="title">Impostazioni</h1>
 
       {!isAuthenticated ? (
-        <div className="card">
-          <h2 style={{ marginBottom: '1rem' }}>Accesso Amministratore</h2>
-          <p style={{ marginBottom: '1.5rem', color: 'rgba(255,255,255,0.7)' }}>
+        <div className="card settings-card">
+          <h2 className="card-title">Accesso Amministratore</h2>
+          <p className="settings-text">
             Inserisci la password master per sbloccare le modifiche (aggiunta partite, giocatori) e la gestione del database.
           </p>
-          <form onSubmit={handleLogin} style={{ display: 'flex', gap: '1rem' }}>
-            <input 
-              type="password" 
-              className="input" 
-              placeholder="Password..." 
+          <form onSubmit={handleLogin} className="settings-row settings-row-form">
+            <input
+              type="password"
+              className="input settings-input"
+              placeholder="Password..."
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
@@ -91,21 +90,23 @@ export default function SettingsPage() {
           </form>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <div className="card">
-            <h2 style={{ marginBottom: '1rem', color: '#10b981' }}>✓ Autenticato</h2>
-            <p style={{ marginBottom: '1.5rem', color: 'rgba(255,255,255,0.7)' }}>
+        <div className="settings-stack">
+          <div className="card settings-card">
+            <h2 className="card-title" style={{ color: '#10b981' }}>✓ Autenticato</h2>
+            <p className="settings-text">
               Sei loggato come amministratore. Puoi registrare nuove partite e modificare i dati.
             </p>
-            <button onClick={handleLogout} className="btn btn-pill btn-danger">Esci</button>
+            <div className="settings-row">
+              <button onClick={handleLogout} className="btn btn-pill btn-danger">Esci</button>
+            </div>
           </div>
 
-          <div className="card">
-            <h2 style={{ marginBottom: '1rem' }}>Esporta in CSV</h2>
-            <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>
+          <div className="card settings-card">
+            <h2 className="card-title">Esporta in CSV</h2>
+            <p className="settings-text">
               Scarica classifica e cronologia come file CSV (apribili in Excel / Google Sheets / Numbers).
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+            <div className="settings-row">
               <a
                 href="/api/export/csv/leaderboard"
                 className="btn btn-pill"
@@ -119,24 +120,26 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="card">
-            <h2 style={{ marginBottom: '1rem' }}>Gestione Database (backup completo)</h2>
+          <div className="card settings-card">
+            <h2 className="card-title">Gestione Database (backup completo)</h2>
 
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '0.5rem' }}>Esporta Dati</h3>
-              <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>
+            <div className="settings-section">
+              <h3 className="settings-subtitle">Esporta Dati</h3>
+              <p className="settings-text">
                 Scarica una copia locale del database SQLite completo (binario).
               </p>
-              <button onClick={handleExport} className="btn btn-pill">
-                ⬇️ Scarica dev.db
-              </button>
+              <div className="settings-row">
+                <button onClick={handleExport} className="btn btn-pill">
+                  ⬇️ Scarica dev.db
+                </button>
+              </div>
             </div>
 
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', marginBottom: '1.5rem' }} />
+            <hr className="settings-divider" />
 
-            <div>
-              <h3 style={{ marginBottom: '0.5rem' }}>Importa Dati</h3>
-              <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#ef4444' }}>
+            <div className="settings-section">
+              <h3 className="settings-subtitle">Importa Dati</h3>
+              <p className="settings-text settings-text-warning">
                 Attenzione: caricare un file .db sovrascriverà tutti i dati attuali.
               </p>
               <input

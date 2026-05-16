@@ -805,6 +805,15 @@ button {
   text-align: center !important;
 }
 
+/* Mobile: extra padding sopra la legend (in aggiunta al margin.bottom
+   30 del LineChart) per evitare che le tick label dell'asse X tocchino
+   la prima riga di legend quando il chart è stretto e la legend va a capo. */
+@media (max-width: 768px) {
+  .chart-card .recharts-legend-wrapper {
+    padding-top: 0.5rem;
+  }
+}
+
 .chart-box {
   width: 100%;
   min-width: 0;
@@ -941,6 +950,68 @@ button {
 .h2h-select:hover {
   background-color: rgba(0, 0, 0, 0.38);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Settings page: tutto centrato (titoli, testi, bottoni).
+   `.card-title` è già centrato globalmente (pack #28). Qui centriamo
+   anche i `<p>` descrizione e i bottoni in `.settings-row`. */
+.settings-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+.settings-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.settings-card {
+  text-align: center;
+}
+.settings-text {
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+}
+.settings-text-warning {
+  color: #ef4444;
+}
+.settings-subtitle {
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.settings-section {
+  margin-bottom: 1.5rem;
+}
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+.settings-divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0 0 1.5rem 0;
+}
+.settings-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.settings-row-form .settings-input {
+  flex: 1 1 200px;
+  max-width: 320px;
+}
+@media (max-width: 480px) {
+  .settings-row-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .settings-row-form .settings-input {
+    flex: 1 1 auto;
+    max-width: none;
+  }
 }
 
 /* Toggle "Mostra cancellati" nel dashboard-header (tab Player, admin).

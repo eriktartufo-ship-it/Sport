@@ -82,13 +82,28 @@ export default function StatsCharts({
   const cumulative: Record<string, number> = {};
   allIds.forEach((id) => { cumulative[id] = 0; });
 
-  const progressionData = matchesAsc.map((m) => {
-    m.results.forEach((r) => {
-      if (cumulative[r.playerId] !== undefined) {
-        cumulative[r.playerId] += SCORE_BY_MEDAL[r.medal] ?? 0;
-      }
+  // Aggregazione per giornata: ogni punto sul grafico = 1 data (non 1
+  // match). 4 partite in un sabato → 1 solo punto sull'asse X col
+  // cumulato fino a fine giornata. Senza questo, dopo 100+ match estivi
+  // il grafico diventava illeggibile (asse X troppo denso).
+  const byDay = new Map<string, typeof matchesAsc>();
+  matchesAsc.forEach((m) => {
+    const dayKey = new Date(m.date).toISOString().slice(0, 10);
+    const arr = byDay.get(dayKey) ?? [];
+    arr.push(m);
+    byDay.set(dayKey, arr);
+  });
+  const sortedDays = Array.from(byDay.keys()).sort();
+
+  const progressionData = sortedDays.map((dayKey) => {
+    byDay.get(dayKey)!.forEach((m) => {
+      m.results.forEach((r) => {
+        if (cumulative[r.playerId] !== undefined) {
+          cumulative[r.playerId] += SCORE_BY_MEDAL[r.medal] ?? 0;
+        }
+      });
     });
-    const point: Record<string, number | string> = { date: formatDate(m.date) };
+    const point: Record<string, number | string> = { date: formatDate(dayKey) };
     allIds.forEach((id) => {
       point[allNames.get(id) || id] = cumulative[id];
     });
@@ -141,7 +156,7 @@ export default function StatsCharts({
                 width={width}
                 height={height}
                 data={progressionData}
-                margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                margin={{ top: 10, right: 10, left: -10, bottom: 30 }}
               >
                 <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
                 <XAxis dataKey="date" stroke={COLORS.axis} fontSize={12} />
@@ -235,7 +250,7 @@ function WeeklyTrendChart({
             width={width}
             height={height}
             data={data}
-            margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+            margin={{ top: 10, right: 10, left: -10, bottom: 30 }}
           >
             <CartesianGrid stroke={COLORS.grid} strokeDasharray="3 3" />
             <XAxis dataKey="week" stroke={COLORS.axis} fontSize={11} />
