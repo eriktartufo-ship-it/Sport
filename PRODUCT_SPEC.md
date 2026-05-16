@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 3.0 — 2026-05-16 (post pack #29 — revert pack #26 pill + .btn-pill + cerchio icon-btn + Home brand)
+> Versione: 3.1 — 2026-05-16 (post pack #30 — brand casetta + legend centrata + date pill + btn-pair + settings pill)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
