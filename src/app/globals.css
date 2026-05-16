@@ -239,6 +239,20 @@ button {
   border-radius: 999px;
 }
 
+/* Modifier: bottoni in coppia con larghezza equivalente. Usato per
+   Cancella partita + Annulla in /ko/match/[id]/edit (così non sembrano
+   gerarchicamente diversi: stessa importanza di azione, stessa
+   dimensione). */
+.btn-pair {
+  min-width: 200px;
+}
+@media (max-width: 480px) {
+  .btn-pair {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
 .btn-ghost:hover {
   background: rgba(0, 0, 0, 0.4);
   border-color: rgba(255, 255, 255, 0.2);
@@ -778,10 +792,13 @@ button {
   text-align: center;
 }
 
-/* Legend Recharts: di default è centrata orizzontalmente perché il
-   wrapperStyle width=100%, ma il children flex-start lo allinea a sx
-   su alcuni casi. Forziamo center via CSS. */
+/* Legend Recharts: il wrapper di default ha position:absolute con
+   left/width calcolati dal chart margin (-10/+10 → la legend resta
+   spostata a sx). Forziamo left:0 e width 100% del card, poi center
+   text-align per allineare il contenuto. */
 .chart-card .recharts-legend-wrapper {
+  left: 0 !important;
+  width: 100% !important;
   text-align: center !important;
 }
 .chart-card .recharts-default-legend {

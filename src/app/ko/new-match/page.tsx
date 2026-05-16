@@ -151,7 +151,7 @@ export default function NewKOMatch() {
           value={matchDate}
           max={todayIso()}
           onChange={(e) => setMatchDate(e.target.value)}
-          style={{ maxWidth: '220px', margin: '0 auto' }}
+          style={{ maxWidth: '220px', margin: '0 auto', borderRadius: '999px' }}
         />
       </div>
 

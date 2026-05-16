@@ -64,7 +64,7 @@ export default function AuthHeader() {
   return (
     <header className="app-header">
       <Link href="/" className="app-header-brand">
-        🏀 Home
+        🏠 Home
       </Link>
 
       <div className="app-header-right">

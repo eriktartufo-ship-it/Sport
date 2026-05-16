@@ -87,7 +87,7 @@ export default function SettingsPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
-            <button type="submit" className="btn">Accedi</button>
+            <button type="submit" className="btn btn-pill">Accedi</button>
           </form>
         </div>
       ) : (
@@ -97,7 +97,7 @@ export default function SettingsPage() {
             <p style={{ marginBottom: '1.5rem', color: 'rgba(255,255,255,0.7)' }}>
               Sei loggato come amministratore. Puoi registrare nuove partite e modificare i dati.
             </p>
-            <button onClick={handleLogout} className="btn btn-danger">Esci</button>
+            <button onClick={handleLogout} className="btn btn-pill btn-danger">Esci</button>
           </div>
 
           <div className="card">
@@ -108,13 +108,13 @@ export default function SettingsPage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
               <a
                 href="/api/export/csv/leaderboard"
-                className="btn"
-                style={{ background: 'var(--primary)', textDecoration: 'none' }}
+                className="btn btn-pill"
+                style={{ textDecoration: 'none' }}
               >📊 Classifica</a>
               <a
                 href="/api/export/csv/matches"
-                className="btn"
-                style={{ background: 'var(--primary)', textDecoration: 'none' }}
+                className="btn btn-pill"
+                style={{ textDecoration: 'none' }}
               >📋 Cronologia</a>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
               <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)' }}>
                 Scarica una copia locale del database SQLite completo (binario).
               </p>
-              <button onClick={handleExport} className="btn" style={{ background: 'var(--primary)' }}>
+              <button onClick={handleExport} className="btn btn-pill">
                 ⬇️ Scarica dev.db
               </button>
             </div>

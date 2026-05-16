@@ -175,7 +175,7 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
           value={matchDate}
           max={dateToIso(new Date())}
           onChange={(e) => setMatchDate(e.target.value)}
-          style={{ maxWidth: '220px', margin: '0 auto' }}
+          style={{ maxWidth: '220px', margin: '0 auto', borderRadius: '999px' }}
         />
       </div>
 
@@ -248,13 +248,13 @@ export default function EditKOMatch({ params }: { params: Promise<{ id: string }
 
       <div className="edit-match-actions">
         <button
-          className="btn btn-pill btn-danger"
+          className="btn btn-pill btn-danger btn-pair"
           onClick={handleDelete}
           disabled={deleting || saving}
         >
           {deleting ? 'Cancellazione...' : '🗑️ Cancella partita'}
         </button>
-        <button className="btn btn-pill btn-ghost" onClick={() => router.push('/ko')}>Annulla</button>
+        <button className="btn btn-pill btn-ghost btn-pair" onClick={() => router.push('/ko')}>Annulla</button>
         <button className="btn btn-pill" onClick={handleSave} disabled={saving || selectedPlayers.length < 3}>
           {saving ? 'Salvataggio...' : 'Salva modifiche'}
         </button>
