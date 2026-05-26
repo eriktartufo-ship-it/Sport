@@ -5,13 +5,18 @@ import { PlayerUpdateSchema, parseBody } from '@/lib/schemas';
 
 /**
  * DELETE /api/players/[id]
- *   Soft-delete: marca deletedAt = now(). Il player sparisce dalle
- *   liste attive (add/new-match) ma la sua storia resta nei
- *   MatchResult → classifica/cronologia/H2H continuano a vederlo.
- *   Idempotente: cancellare un già-cancellato è no-op.
+ *   Default: soft-delete (deletedAt = now()). Player sparisce dalle
+ *   liste attive ma la sua storia resta nei MatchResult/Match3v3Player.
+ *   Idempotente.
+ *
+ * DELETE /api/players/[id]?force=1
+ *   HARD delete: rimuove definitivamente dal DB. Cascade automatico su
+ *   MatchResult e Match3v3Player. Rifiuta (409) se il player ha
+ *   ancora risultati → l'utente deve prima cancellare le partite o
+ *   confermare la perdita storica. Pensato per pulire player di test.
  */
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getAdminSession();
@@ -20,6 +25,32 @@ export async function DELETE(
   }
   try {
     const { id } = await params;
+    const url = new URL(request.url);
+    const force = url.searchParams.get('force') === '1' || url.searchParams.get('force') === 'true';
+
+    if (force) {
+      const counts = await prisma.player.findUnique({
+        where: { id },
+        select: {
+          _count: { select: { results: true, results3v3: true } },
+        },
+      });
+      if (!counts) {
+        return NextResponse.json({ error: 'Giocatore non trovato' }, { status: 404 });
+      }
+      const totalResults = counts._count.results + counts._count.results3v3;
+      if (totalResults > 0) {
+        return NextResponse.json(
+          {
+            error: `Hard delete bloccato: il giocatore ha ${totalResults} partita/e nella sua storia. Cancella prima le partite, oppure usa il soft-delete.`,
+          },
+          { status: 409 }
+        );
+      }
+      await prisma.player.delete({ where: { id } });
+      return NextResponse.json({ success: true, hard: true });
+    }
+
     await prisma.player.update({
       where: { id },
       data: { deletedAt: new Date() },

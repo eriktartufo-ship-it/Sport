@@ -188,6 +188,29 @@ export default function KODashboard() {
     }
   };
 
+  /**
+   * Hard delete definitivo: rimuove il player dal DB. Riservato a player
+   * di test (zero risultati). Il server rifiuta 409 se ci sono partite.
+   */
+  const handleHardDelete = async (player: Player) => {
+    if (
+      !confirm(
+        `Eliminare DEFINITIVAMENTE "${player.name}" dal database? Azione irreversibile. Funziona solo se il giocatore non ha mai giocato partite.`
+      )
+    ) return;
+    try {
+      const res = await fetch(`/api/players/${player.id}?force=1`, { method: 'DELETE' });
+      if (res.ok) {
+        load(season, showDeletedPlayers);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Errore nella cancellazione definitiva');
+      }
+    } catch {
+      alert('Errore di connessione');
+    }
+  };
+
   return (
     <div>
       {/* Il nav (DashboardNav) è montato nel ko/layout.tsx, visibile su
@@ -373,12 +396,20 @@ export default function KODashboard() {
                           {isAuthenticated && (
                             <div className="player-card-actions">
                               {isDeleted ? (
-                                <button
-                                  className="icon-btn icon-btn-restore"
-                                  onClick={() => handleRestore(p)}
-                                  aria-label={`Ripristina ${p.name}`}
-                                  title="Ripristina"
-                                >↩️</button>
+                                <>
+                                  <button
+                                    className="icon-btn icon-btn-restore"
+                                    onClick={() => handleRestore(p)}
+                                    aria-label={`Ripristina ${p.name}`}
+                                    title="Ripristina"
+                                  >↩️</button>
+                                  <button
+                                    className="icon-btn icon-btn-danger"
+                                    onClick={() => handleHardDelete(p)}
+                                    aria-label={`Elimina definitivamente ${p.name}`}
+                                    title="Elimina definitivamente (solo se 0 partite)"
+                                  >🗑️</button>
+                                </>
                               ) : (
                                 <>
                                   <button
