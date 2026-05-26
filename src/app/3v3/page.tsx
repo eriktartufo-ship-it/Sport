@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import SeasonSelector from '@/components/SeasonSelector';
 import RegisterFab from '@/components/RegisterFab';
+import PlayerManagementCard from '@/components/PlayerManagementCard';
 
 type Side = 'A' | 'B';
 
@@ -297,34 +298,11 @@ export default function Dashboard3v3() {
         )}
 
         {activeTab === 'player' && (
-          <div className="card">
-            <h2 className="card-title">Giocatori</h2>
-            <p className="muted" style={{ textAlign: 'center', marginBottom: '1rem' }}>
-              I giocatori sono condivisi con K.O. — gestiscili dalla{' '}
-              <Link href="/ko?tab=player" style={{ color: 'var(--primary)' }}>tab Player di K.O.</Link>
-            </p>
-            {players.length === 0 ? (
-              <p className="muted">Nessun giocatore.</p>
-            ) : (
-              <div className="player-grid">
-                {players.map((p) => {
-                  const isDeleted = !!p.deletedAt;
-                  return (
-                    <div key={p.id} className={`player-card${isDeleted ? ' player-card-deleted' : ''}`}>
-                      <span className="player-card-name">
-                        {p.name}
-                        {isDeleted && (
-                          <span className="player-deleted-tag" title={`Cancellato il ${new Date(p.deletedAt!).toLocaleDateString('it-IT')}`}>
-                            cancellato
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <PlayerManagementCard
+            players={players}
+            isAuthenticated={isAuthenticated}
+            onReload={() => load(season, showDeletedPlayers)}
+          />
         )}
       </div>
     </div>

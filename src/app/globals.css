@@ -956,15 +956,17 @@ button {
    Sport 3vs3 — pickers, slots, classifica per team/persona, cronologia
    ============================================================ */
 
-/* Container new-match: i 2 pickers affiancati desktop, stacked mobile. */
-.match-form-3v3 .team3v3-pickers {
+/* Container new-match: i 2 pickers affiancati desktop, stacked mobile.
+   Gap ampio per separare visivamente le 2 squadre. */
+.team3v3-pickers {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 2rem;
 }
 @media (max-width: 700px) {
-  .match-form-3v3 .team3v3-pickers {
+  .team3v3-pickers {
     grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
 }
 
@@ -1016,37 +1018,36 @@ button {
   flex-direction: column;
   gap: 0.4rem;
 }
-/* Dropdown select per ogni slot di una squadra: glass coerente con
-   .season-selector-select. Width 100% del picker. */
-.team3v3-slot-select {
-  width: 100%;
-  padding: 0.55rem 2rem 0.55rem 1rem;
-  min-height: 44px;
+/* Slot di una squadra (3v3): pill cliccabile (filled) o placeholder
+   dashed (empty). Click su filled = ciclo A→B→libero (gestito nel page). */
+.team3v3-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
   border-radius: 10px;
-  background: rgba(0, 0, 0, 0.28);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--glass-border);
-  box-shadow: inset 0 1px 0 var(--glass-highlight);
   color: var(--foreground);
-  font-size: 16px; /* >= 16 per evitare zoom iOS */
-  font-weight: 500;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5l3 3 3-3' stroke='%23ffffff99' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.7rem center;
+  font-size: 0.95rem;
+  min-height: 40px;
   cursor: pointer;
   transition: var(--transition);
+  font-family: inherit;
+  text-align: left;
 }
-.team3v3-slot-select:hover {
-  background-color: rgba(0, 0, 0, 0.38);
-  border-color: rgba(255, 255, 255, 0.2);
+.team3v3-slot.is-empty {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.3);
+  justify-content: center;
+  cursor: default;
 }
-.team3v3-slot-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+.team3v3-slot.is-filled:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
 }
 
 /* Classifica team/persona 3v3 */

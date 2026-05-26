@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, use } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 
 type Player = { id: string; name: string };
+type Side = 'A' | 'B' | null;
 
 const dateToIso = (d: string | Date) => {
   const dt = typeof d === 'string' ? new Date(d) : d;
@@ -18,24 +19,12 @@ type Match3v3Resp = {
   results: { id: string; playerId: string; teamSide: 'A' | 'B'; player: Player }[];
 };
 
-const EMPTY_SLOT = '' as const;
-type SlotValue = string;
-
 export default function EditMatch3v3({ params }: { params: Promise<{ id: string }> }) {
   const { id: matchId } = use(params);
   const router = useRouter();
 
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const [slotsA, setSlotsA] = useState<[SlotValue, SlotValue, SlotValue]>([
-    EMPTY_SLOT,
-    EMPTY_SLOT,
-    EMPTY_SLOT,
-  ]);
-  const [slotsB, setSlotsB] = useState<[SlotValue, SlotValue, SlotValue]>([
-    EMPTY_SLOT,
-    EMPTY_SLOT,
-    EMPTY_SLOT,
-  ]);
+  const [assign, setAssign] = useState<Record<string, Side>>({});
   const [scoreA, setScoreA] = useState<number>(0);
   const [scoreB, setScoreB] = useState<number>(0);
   const [matchDate, setMatchDate] = useState<string>(dateToIso(new Date()));
@@ -69,20 +58,11 @@ export default function EditMatch3v3({ params }: { params: Promise<{ id: string 
         setMatchDate(dateToIso(match.date));
         setScoreA(match.teamAScore);
         setScoreB(match.teamBScore);
-
-        // Fill slots dall'ordine "naturale" dei results (resta deterministico).
-        const aIds = match.results.filter((r) => r.teamSide === 'A').map((r) => r.playerId);
-        const bIds = match.results.filter((r) => r.teamSide === 'B').map((r) => r.playerId);
-        setSlotsA([
-          aIds[0] ?? EMPTY_SLOT,
-          aIds[1] ?? EMPTY_SLOT,
-          aIds[2] ?? EMPTY_SLOT,
-        ]);
-        setSlotsB([
-          bIds[0] ?? EMPTY_SLOT,
-          bIds[1] ?? EMPTY_SLOT,
-          bIds[2] ?? EMPTY_SLOT,
-        ]);
+        const a: Record<string, Side> = {};
+        for (const r of match.results) {
+          a[r.playerId] = r.teamSide;
+        }
+        setAssign(a);
         setLoading(false);
       } catch (e) {
         console.error(e);
@@ -92,38 +72,37 @@ export default function EditMatch3v3({ params }: { params: Promise<{ id: string 
     })();
   }, [matchId, router]);
 
-  const selectedIds = useMemo(
-    () => new Set<string>([...slotsA, ...slotsB].filter((v) => v !== EMPTY_SLOT)),
-    [slotsA, slotsB]
-  );
-
-  const optionsFor = (currentValue: SlotValue): Player[] => {
-    return allPlayers.filter((p) => p.id === currentValue || !selectedIds.has(p.id));
-  };
-
-  const countA = slotsA.filter((v) => v !== EMPTY_SLOT).length;
-  const countB = slotsB.filter((v) => v !== EMPTY_SLOT).length;
-
-  const setSlot = (side: 'A' | 'B', idx: 0 | 1 | 2, value: SlotValue) => {
-    if (side === 'A') {
-      setSlotsA((prev) => {
-        const next = [...prev] as [SlotValue, SlotValue, SlotValue];
-        next[idx] = value;
-        return next;
-      });
-    } else {
-      setSlotsB((prev) => {
-        const next = [...prev] as [SlotValue, SlotValue, SlotValue];
-        next[idx] = value;
-        return next;
-      });
+  const counts = (() => {
+    let a = 0;
+    let b = 0;
+    for (const v of Object.values(assign)) {
+      if (v === 'A') a++;
+      else if (v === 'B') b++;
     }
+    return { a, b };
+  })();
+
+  const cycle = (pid: string) => {
+    setAssign((prev) => {
+      const cur = prev[pid] ?? null;
+      const next: Record<string, Side> = { ...prev };
+      if (cur === null) {
+        if (counts.a < 3) next[pid] = 'A';
+        else if (counts.b < 3) next[pid] = 'B';
+      } else if (cur === 'A') {
+        if (counts.b < 3) next[pid] = 'B';
+        else next[pid] = null;
+      } else {
+        next[pid] = null;
+      }
+      return next;
+    });
   };
 
   const handleSave = async () => {
     setErrorMsg(null);
-    const teamA = slotsA.filter((v) => v !== EMPTY_SLOT);
-    const teamB = slotsB.filter((v) => v !== EMPTY_SLOT);
+    const teamA = allPlayers.filter((p) => assign[p.id] === 'A').map((p) => p.id);
+    const teamB = allPlayers.filter((p) => assign[p.id] === 'B').map((p) => p.id);
     if (teamA.length !== 3 || teamB.length !== 3) {
       setErrorMsg('Servono esattamente 3 giocatori per squadra.');
       return;
@@ -183,6 +162,10 @@ export default function EditMatch3v3({ params }: { params: Promise<{ id: string 
   if (loading) return <p>Caricamento...</p>;
   if (errorMsg && !allPlayers.length) return <p style={{ color: 'var(--danger)' }}>{errorMsg}</p>;
 
+  const teamAPlayers = allPlayers.filter((p) => assign[p.id] === 'A');
+  const teamBPlayers = allPlayers.filter((p) => assign[p.id] === 'B');
+  const unassigned = allPlayers.filter((p) => !assign[p.id]);
+
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
       <h1 className="title match-form-title">Modifica Partita 3vs3</h1>
@@ -199,69 +182,80 @@ export default function EditMatch3v3({ params }: { params: Promise<{ id: string 
         />
       </div>
 
-      <div className="team3v3-pickers">
-        <div className="team3v3-picker">
-          <div className="team3v3-picker-head">
-            <h3>Squadra A</h3>
-            <span className={`team3v3-count${countA === 3 ? ' is-full' : ''}`}>{countA}/3</span>
+      <div className="match-form-3v3">
+        <div className="team3v3-pickers">
+          <div className="team3v3-picker">
+            <div className="team3v3-picker-head">
+              <h3>Squadra A</h3>
+              <span className={`team3v3-count${counts.a === 3 ? ' is-full' : ''}`}>{counts.a}/3</span>
+            </div>
+            <input
+              type="number"
+              min={0}
+              max={21}
+              className="input team3v3-score-input"
+              value={scoreA}
+              onChange={(e) => setScoreA(Math.max(0, Math.min(21, Number(e.target.value) || 0)))}
+              aria-label="Punti squadra A"
+            />
+            <div className="team3v3-slots">
+              {teamAPlayers.map((p) => (
+                <button key={p.id} type="button" className="team3v3-slot is-filled" onClick={() => cycle(p.id)}>
+                  {p.name} <span aria-hidden="true">✕</span>
+                </button>
+              ))}
+              {Array.from({ length: 3 - teamAPlayers.length }).map((_, i) => (
+                <div key={`empty-a-${i}`} className="team3v3-slot is-empty">—</div>
+              ))}
+            </div>
           </div>
-          <input
-            type="number"
-            min={0}
-            max={21}
-            className="input team3v3-score-input"
-            value={scoreA}
-            onChange={(e) => setScoreA(Math.max(0, Math.min(21, Number(e.target.value) || 0)))}
-            aria-label="Punti squadra A"
-          />
-          <div className="team3v3-slots">
-            {([0, 1, 2] as const).map((idx) => (
-              <select
-                key={`a-${idx}`}
-                className="input team3v3-slot-select"
-                value={slotsA[idx]}
-                onChange={(e) => setSlot('A', idx, e.target.value)}
-                aria-label={`Squadra A, slot ${idx + 1}`}
-              >
-                <option value="">— Slot {idx + 1} —</option>
-                {optionsFor(slotsA[idx]).map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            ))}
+
+          <div className="team3v3-picker">
+            <div className="team3v3-picker-head">
+              <h3>Squadra B</h3>
+              <span className={`team3v3-count${counts.b === 3 ? ' is-full' : ''}`}>{counts.b}/3</span>
+            </div>
+            <input
+              type="number"
+              min={0}
+              max={21}
+              className="input team3v3-score-input"
+              value={scoreB}
+              onChange={(e) => setScoreB(Math.max(0, Math.min(21, Number(e.target.value) || 0)))}
+              aria-label="Punti squadra B"
+            />
+            <div className="team3v3-slots">
+              {teamBPlayers.map((p) => (
+                <button key={p.id} type="button" className="team3v3-slot is-filled" onClick={() => cycle(p.id)}>
+                  {p.name} <span aria-hidden="true">✕</span>
+                </button>
+              ))}
+              {Array.from({ length: 3 - teamBPlayers.length }).map((_, i) => (
+                <div key={`empty-b-${i}`} className="team3v3-slot is-empty">—</div>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="team3v3-picker">
-          <div className="team3v3-picker-head">
-            <h3>Squadra B</h3>
-            <span className={`team3v3-count${countB === 3 ? ' is-full' : ''}`}>{countB}/3</span>
-          </div>
-          <input
-            type="number"
-            min={0}
-            max={21}
-            className="input team3v3-score-input"
-            value={scoreB}
-            onChange={(e) => setScoreB(Math.max(0, Math.min(21, Number(e.target.value) || 0)))}
-            aria-label="Punti squadra B"
-          />
-          <div className="team3v3-slots">
-            {([0, 1, 2] as const).map((idx) => (
-              <select
-                key={`b-${idx}`}
-                className="input team3v3-slot-select"
-                value={slotsB[idx]}
-                onChange={(e) => setSlot('B', idx, e.target.value)}
-                aria-label={`Squadra B, slot ${idx + 1}`}
-              >
-                <option value="">— Slot {idx + 1} —</option>
-                {optionsFor(slotsB[idx]).map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            ))}
-          </div>
+        <div className="card match-form-card" style={{ marginTop: '1.5rem' }}>
+          <h2 style={{ marginBottom: '0.5rem' }}>Giocatori disponibili</h2>
+          {unassigned.length === 0 ? (
+            <p className="muted">Tutti i giocatori sono assegnati.</p>
+          ) : (
+            <div className="player-picker-grid">
+              {unassigned.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => cycle(p.id)}
+                  className="player-pill"
+                  disabled={counts.a >= 3 && counts.b >= 3}
+                >
+                  <span className="player-pill-name">{p.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -287,7 +281,7 @@ export default function EditMatch3v3({ params }: { params: Promise<{ id: string 
           className="btn btn-pill btn-pair"
           type="button"
           onClick={handleSave}
-          disabled={saving || countA !== 3 || countB !== 3}
+          disabled={saving || counts.a !== 3 || counts.b !== 3}
         >
           {saving ? 'Salvataggio...' : 'Salva modifiche'}
         </button>
