@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 3.2 — 2026-05-16 (post pack #31 — chart-legend spacing + cumulative per giornata + Salva btn-pair + settings center)
+> Versione: 4.0 — 2026-05-16 (post pack #32 — nuovo sport 3vs3 MVP)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -20,9 +20,11 @@ di amici. Un solo admin (single-password). Lettura pubblica della classifica
 e della cronologia. Solo la mutazione (aggiungere giocatori, modificare nomi,
 registrare partite, importare/esportare DB) richiede admin.
 
-Per ora è attivo solo il modulo **K.O. (Basket)**. La struttura del DB
-prevede un `Sport` come entità separata in vista di sport futuri, ma niente
-viene implementato finché non richiesto.
+Moduli attivi (dal pack #32, 2026-05-16):
+- **K.O. (Basket)** — gioco a eliminazione, medaglie 🥇🥈🥉
+- **3vs3 (Basket FIBA 3x3)** — squadre da 3, punteggi 0–21, vincitore obbligato a 21
+
+I `Player` sono condivisi tra i moduli. Gestione player resta in `/ko?tab=player`.
 
 ### Out of scope (deliberatamente)
 
