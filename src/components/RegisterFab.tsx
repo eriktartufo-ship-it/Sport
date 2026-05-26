@@ -11,11 +11,17 @@ import Link from 'next/link';
  * Usa anche --nav-bottom-offset per seguire il visualViewport su iOS
  * (vedi MobileNavOffset.tsx).
  */
-export default function RegisterFab({ visible }: { visible: boolean }) {
+export default function RegisterFab({
+  visible,
+  href = '/ko/new-match',
+}: {
+  visible: boolean;
+  href?: string;
+}) {
   if (!visible) return null;
   return (
     <Link
-      href="/ko/new-match"
+      href={href}
       className="register-fab"
       aria-label="Registra nuova partita"
       title="Registra nuova partita"

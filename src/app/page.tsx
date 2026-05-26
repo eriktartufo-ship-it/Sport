@@ -16,6 +16,16 @@ export default function Home() {
           </p>
         </Link>
 
+        <Link href="/3v3" className="sport-card">
+          <div className="sport-card-head">
+            <span className="sport-card-icon" aria-hidden="true">🤝</span>
+            <h2 className="sport-card-title">3vs3</h2>
+          </div>
+          <p className="sport-card-desc">
+            Basket 3 contro 3, regolamento FIBA 3x3. Squadre, punti e classifiche per combinazione + per persona.
+          </p>
+        </Link>
+
         <div className="sport-card sport-card-disabled">
           <div className="sport-card-head">
             <span className="sport-card-icon" aria-hidden="true">⚽</span>

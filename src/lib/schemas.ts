@@ -36,6 +36,39 @@ export const MatchUpsertSchema = z.object({
     .min(3, 'Una partita di K.O. richiede almeno 3 giocatori'),
 });
 
+/**
+ * Body per POST /api/matches/3v3 e PATCH /api/matches/3v3/[id].
+ * Regole 3vs3 (basket FIBA 3x3):
+ *   - 3 player per squadra (teamA + teamB)
+ *   - 6 player tutti distinti
+ *   - punteggi 0..21 interi
+ *   - vincitore SEMPRE a 21 (max(A,B) == 21)
+ *   - no pareggio (A != B)
+ */
+export const Match3v3UpsertSchema = z
+  .object({
+    date: z.string().optional().nullable(),
+    teamA: z.array(z.string().min(1)).length(3, 'Squadra A deve avere esattamente 3 giocatori'),
+    teamB: z.array(z.string().min(1)).length(3, 'Squadra B deve avere esattamente 3 giocatori'),
+    teamAScore: z.number().int().min(0).max(21),
+    teamBScore: z.number().int().min(0).max(21),
+  })
+  .refine((d) => d.teamAScore !== d.teamBScore, {
+    message: 'Una squadra deve vincere — i punteggi non possono essere uguali',
+    path: ['teamBScore'],
+  })
+  .refine((d) => Math.max(d.teamAScore, d.teamBScore) === 21, {
+    message: 'Il vincitore deve arrivare a 21 punti',
+    path: ['teamAScore'],
+  })
+  .refine(
+    (d) => {
+      const all = [...d.teamA, ...d.teamB];
+      return new Set(all).size === all.length;
+    },
+    { message: 'Un giocatore non può essere in entrambe le squadre', path: ['teamB'] }
+  );
+
 export type ParseResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };

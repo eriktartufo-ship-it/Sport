@@ -17,12 +17,16 @@ model Player {
   // → continuano a comparire in classifica/cronologia/H2H.
   deletedAt DateTime?
   results   MatchResult[]
+  // Riusati per il modulo 3vs3 (basket squadre): un Player può
+  // partecipare a Match3v3 senza migration. Cascade come per MatchResult.
+  results3v3 Match3v3Player[]
 }
 
 model Sport {
-  id      String  @id @default(uuid())
-  name    String  @unique // e.g. "K.O."
-  matches Match[]
+  id         String     @id @default(uuid())
+  name       String     @unique // e.g. "K.O.", "3v3"
+  matches    Match[]
+  matches3v3 Match3v3[]
 }
 
 model Match {
@@ -41,6 +45,32 @@ model MatchResult {
   player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
   playerId String
   medal    String // "GOLD", "SILVER", "BRONZE", "NONE"
+
+  @@unique([matchId, playerId])
+}
+
+// 3vs3 basket: due squadre da 3 player ciascuna, score 0–21 FIBA.
+// Vincitore sempre con 21 punti, perdente 0–20, no pareggio.
+// La "squadra" come entità non esiste (set di 3 player è derivato dai
+// Match3v3Player con teamSide). La classifica per combinazione aggrega
+// in JS via SQL groupBy non efficiente su SQLite.
+model Match3v3 {
+  id         String           @id @default(uuid())
+  sport      Sport            @relation(fields: [sportId], references: [id])
+  sportId    String
+  date       DateTime         @default(now())
+  teamAScore Int
+  teamBScore Int
+  results    Match3v3Player[]
+}
+
+model Match3v3Player {
+  id       String   @id @default(uuid())
+  match    Match3v3 @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId  String
+  player   Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String
+  teamSide String // "A" oppure "B"
 
   @@unique([matchId, playerId])
 }
