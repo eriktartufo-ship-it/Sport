@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 4.0 — 2026-05-16 (post pack #32 — nuovo sport 3vs3 MVP)
+> Versione: 4.1 — 2026-05-26 (post pack #33 — hard delete player + 3v3 slot dropdowns)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
