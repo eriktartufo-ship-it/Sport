@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 4.1 — 2026-05-26 (post pack #33 — hard delete player + 3v3 slot dropdowns)
+> Versione: 4.2 — 2026-05-26 (post pack #34 — revert tap-cycle + gap pickers + PlayerManagementCard shared)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
