@@ -70,40 +70,23 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    # Self-hosted runner SUL VPS (pattern Macro, 2026-06-06). NIENTE SSH in ingresso:
+    # i runner GitHub-hosted non raggiungono la :22 del VPS (Hostinger blocca i range
+    # Azure -> "dial tcp :22 i/o timeout"). Il runner gira sul VPS e fa tutto in locale.
+    runs-on: [self-hosted, linux, vps-sport]
     steps:
-      - name: SSH to VPS — sync compose + pull & restart
-        uses: appleboy/ssh-action@v1.2.0
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        with:
-          host: ${{ secrets.VPS_SSH_HOST }}
-          username: ${{ secrets.VPS_SSH_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT || 22 }}
-          script_stop: true
-          envs: GH_TOKEN,REPO,SHA
-          script: |
-            set -euo pipefail
-            cd /opt/sport
-            # Sync docker-compose.yml dal repo al commit deployato cosi' le modifiche
-            # al compose (es. label Traefik / security headers) vanno live da sole.
-            # Pattern validato: curl GH Contents API (NO scp-action: su Hostinger fa i/o timeout).
-            curl -fsSL \
-              -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github.raw" \
-              -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/$REPO/contents/docker-compose.yml?ref=$SHA" \
-              -o docker-compose.yml.new
-            test -s docker-compose.yml.new
-            mv docker-compose.yml.new docker-compose.yml
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+      - name: Checkout (per sync docker-compose.yml)
+        uses: actions/checkout@v4
+
+      - name: Sync compose + pull & restart
+        run: |
+          set -euo pipefail
+          # docker-compose.yml dal commit deployato -> /opt/sport (il .env resta intatto).
+          install -m 644 docker-compose.yml /opt/sport/docker-compose.yml
+          cd /opt/sport
+          docker compose pull
+          docker compose up -d
+          docker image prune -f
 
       - name: Smoke test (HTTPS endpoint)
         run: |
