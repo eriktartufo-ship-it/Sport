@@ -646,13 +646,13 @@ button {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  /* Tinta blu discreta (stessa palette del .slide-tabs-highlight nel nav)
-     per dare affordance "+ aggiungi" senza rompere la coerenza glass.
-     Backdrop blur attivo → il blu si vede "filtrato" come liquid. */
-  background: rgba(59, 130, 246, 0.28);
+  /* Blu primary più chiaro (blue-400 #60a5fa) con opacità alta:
+     resta liquid (backdrop blur), ma il "+" si vede subito anche con
+     contenuto scuro sotto. */
+  background: rgba(96, 165, 250, 0.78);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(59, 130, 246, 0.55);
+  border: 1px solid rgba(147, 197, 253, 0.85);
   color: white;
   display: inline-flex;
   align-items: center;
@@ -661,8 +661,8 @@ button {
   font-weight: 700;
   z-index: 99;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 6px 18px rgba(59, 130, 246, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 8px 22px rgba(96, 165, 250, 0.45),
     var(--glass-shadow);
   transition: var(--transition);
   text-decoration: none;
@@ -670,12 +670,12 @@ button {
 }
 
 .register-fab:hover {
-  background: rgba(59, 130, 246, 0.42);
-  border-color: rgba(96, 165, 250, 0.75);
+  background: rgba(96, 165, 250, 0.92);
+  border-color: rgba(191, 219, 254, 0.95);
   transform: translateY(-2px) scale(1.04);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 10px 28px rgba(59, 130, 246, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    0 12px 30px rgba(96, 165, 250, 0.55),
     0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
