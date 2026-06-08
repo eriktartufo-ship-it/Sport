@@ -653,7 +653,13 @@ button {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid rgba(147, 197, 253, 0.85);
-  color: white;
+  /* "+" viola chiaro acceso (violet-300 #c4b5fd, lo stesso famiglia
+     dell'a78bfa nel gradient .title del brand). Glow viola tenue per
+     accenderlo sul fondo blu senza stonare. */
+  color: #c4b5fd;
+  text-shadow:
+    0 0 6px rgba(196, 181, 253, 0.65),
+    0 0 1px rgba(255, 255, 255, 0.5);
   display: inline-flex;
   align-items: center;
   justify-content: center;
