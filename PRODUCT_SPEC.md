@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 4.2 — 2026-05-26 (post pack #34 — revert tap-cycle + gap pickers + PlayerManagementCard shared)
+> Versione: 4.3 — 2026-06-08 (post pack #35 — FAB tinta blu)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
