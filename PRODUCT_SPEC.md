@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 4.4 — 2026-06-08 (post pack #36 — nav + FAB più opachi)
+> Versione: 4.5 — 2026-06-08 (post pack #37 — gradient brand su nav + FAB)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
