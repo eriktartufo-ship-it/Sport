@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 4.3 — 2026-06-08 (post pack #35 — FAB tinta blu)
+> Versione: 4.4 — 2026-06-08 (post pack #36 — nav + FAB più opachi)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
