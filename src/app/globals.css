@@ -573,10 +573,16 @@ button {
   display: inline-flex;
   gap: 2px;
   padding: 5px;
-  background: rgba(0, 0, 0, 0.25);
+  /* Opacità alta per leggibilità sopra contenuto, backdrop blur per
+     mantenere effetto liquid (vetro spesso, non piattone). */
+  background: rgba(15, 20, 38, 0.78);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: 999px;
-  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    var(--glass-shadow);
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -646,10 +652,11 @@ button {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  /* Blu primary più chiaro (blue-400 #60a5fa) con opacità alta:
-     resta liquid (backdrop blur), ma il "+" si vede subito anche con
-     contenuto scuro sotto. */
-  background: rgba(96, 165, 250, 0.78);
+  /* Blu primary più chiaro (blue-400 #60a5fa) con opacità molto alta:
+     resta liquid (backdrop blur ON), ma il "+" salta all'occhio anche
+     sopra contenuto scuro. Mantenuta leggera trasparenza per coerenza
+     col linguaggio glass. */
+  background: rgba(96, 165, 250, 0.92);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid rgba(147, 197, 253, 0.85);
@@ -676,8 +683,8 @@ button {
 }
 
 .register-fab:hover {
-  background: rgba(96, 165, 250, 0.92);
-  border-color: rgba(191, 219, 254, 0.95);
+  background: rgba(96, 165, 250, 1);
+  border-color: rgba(191, 219, 254, 1);
   transform: translateY(-2px) scale(1.04);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.36),
@@ -708,7 +715,10 @@ button {
     display: flex;
     width: 100%;
     padding: 6px;
-    background: var(--glass-bg);
+    /* Mobile: pill full-width sopra contenuto scuro → ancora più opaca
+       per affordance "barra di navigazione" netta (era 0.55 troppo
+       trasparente, le icone sotto si fondevano col bg pagina). */
+    background: rgba(15, 20, 38, 0.85);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     box-shadow:
