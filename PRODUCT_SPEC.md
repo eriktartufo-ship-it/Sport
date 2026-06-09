@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 4.5 — 2026-06-08 (post pack #37 — gradient brand su nav + FAB)
+> Versione: 4.6 — 2026-06-08 (post pack #38 — favicon basket brand-key)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
