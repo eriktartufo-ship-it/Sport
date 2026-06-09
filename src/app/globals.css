@@ -573,12 +573,13 @@ button {
   display: inline-flex;
   gap: 2px;
   padding: 5px;
-  /* Opacità alta per leggibilità sopra contenuto, backdrop blur per
-     mantenere effetto liquid (vetro spesso, non piattone). */
-  background: rgba(15, 20, 38, 0.78);
+  /* Background sfumato brand (blue-400 → violet-400, stesso gradient di
+     .title / .app-header-brand) per coerenza col linguaggio "Home / K.O.".
+     Opacità alta + backdrop blur → resta liquid glass leggibile. */
+  background: linear-gradient(to right, rgba(96, 165, 250, 0.78), rgba(167, 139, 250, 0.78));
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(191, 184, 254, 0.45);
   border-radius: 999px;
   box-shadow:
     inset 0 1px 0 var(--glass-highlight),
@@ -656,17 +657,15 @@ button {
      resta liquid (backdrop blur ON), ma il "+" salta all'occhio anche
      sopra contenuto scuro. Mantenuta leggera trasparenza per coerenza
      col linguaggio glass. */
-  background: rgba(96, 165, 250, 0.92);
+  /* Background sfumato brand (blue-400 → violet-400, stesso gradient
+     di .title / .app-header-brand / .sport-card-title) per coerenza
+     col linguaggio "Home / K.O." sfumato. Opacità alta + backdrop
+     blur per restare liquid glass leggibile. */
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.92), rgba(167, 139, 250, 0.92));
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(147, 197, 253, 0.85);
-  /* "+" viola chiaro acceso (violet-300 #c4b5fd, lo stesso famiglia
-     dell'a78bfa nel gradient .title del brand). Glow viola tenue per
-     accenderlo sul fondo blu senza stonare. */
-  color: #c4b5fd;
-  text-shadow:
-    0 0 6px rgba(196, 181, 253, 0.65),
-    0 0 1px rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(191, 184, 254, 0.85);
+  color: white;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -683,13 +682,23 @@ button {
 }
 
 .register-fab:hover {
-  background: rgba(96, 165, 250, 1);
-  border-color: rgba(191, 219, 254, 1);
+  background: linear-gradient(135deg, rgba(96, 165, 250, 1), rgba(167, 139, 250, 1));
+  border-color: rgba(216, 211, 255, 1);
   transform: translateY(-2px) scale(1.04);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.36),
-    0 12px 30px rgba(96, 165, 250, 0.55),
+    0 12px 30px rgba(132, 152, 250, 0.6),
     0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Il "+" plain (non emoji) sopra il bg gradient blue→violet: bianco
+   con leggera ombra per leggibilità. */
+.register-fab > span {
+  font-size: 2.1rem;
+  line-height: 1;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .register-fab:active {
@@ -715,10 +724,9 @@ button {
     display: flex;
     width: 100%;
     padding: 6px;
-    /* Mobile: pill full-width sopra contenuto scuro → ancora più opaca
-       per affordance "barra di navigazione" netta (era 0.55 troppo
-       trasparente, le icone sotto si fondevano col bg pagina). */
-    background: rgba(15, 20, 38, 0.85);
+    /* Mobile: stesso gradient brand del desktop, opacità leggermente
+       più alta per affordance "barra di navigazione" netta. */
+    background: linear-gradient(to right, rgba(96, 165, 250, 0.85), rgba(167, 139, 250, 0.85));
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     box-shadow:

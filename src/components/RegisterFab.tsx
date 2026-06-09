@@ -26,7 +26,7 @@ export default function RegisterFab({
       aria-label="Registra nuova partita"
       title="Registra nuova partita"
     >
-      <span aria-hidden="true">➕</span>
+      <span aria-hidden="true">+</span>
     </Link>
   );
 }
