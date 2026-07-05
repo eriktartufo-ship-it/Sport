@@ -39,6 +39,8 @@ export default function HeadToHead({ players }: { players: Player[] }) {
   const [data, setData] = useState<H2HResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // "Mai giocato insieme" NON è un errore: stato vuoto informativo (muted).
+  const [emptyMsg, setEmptyMsg] = useState<string | null>(null);
 
   // Default: primi due player diversi
   useEffect(() => {
@@ -61,6 +63,7 @@ export default function HeadToHead({ players }: { players: Player[] }) {
     const ctrl = new AbortController();
     setLoading(true);
     setError(null);
+    setEmptyMsg(null);
     fetch(`/api/stats/h2h?p1=${encodeURIComponent(p1Id)}&p2=${encodeURIComponent(p2Id)}`, {
       signal: ctrl.signal,
       cache: 'no-store',
@@ -68,13 +71,18 @@ export default function HeadToHead({ players }: { players: Player[] }) {
       .then(async (r) => {
         if (!r.ok) {
           const e = await r.json().catch(() => ({}));
-          throw new Error(e.error || `Errore ${r.status}`);
+          const err = new Error(e.error || `Errore ${r.status}`) as Error & { status?: number };
+          err.status = r.status;
+          throw err;
         }
         return r.json();
       })
       .then((d: H2HResult) => setData(d))
-      .catch((e: Error) => {
-        if (e.name !== 'AbortError') setError(e.message);
+      .catch((e: Error & { status?: number }) => {
+        if (e.name === 'AbortError') return;
+        // 404 = "mai giocato insieme": stato vuoto, non errore rosso.
+        if (e.status === 404) setEmptyMsg('Questi due giocatori non hanno mai giocato insieme.');
+        else setError(e.message);
       })
       .finally(() => setLoading(false));
     return () => ctrl.abort();
@@ -120,6 +128,7 @@ export default function HeadToHead({ players }: { players: Player[] }) {
 
       {loading && <p className="muted" style={{ marginTop: '1rem' }}>Caricamento...</p>}
       {error && <p style={{ color: 'var(--danger)', marginTop: '1rem' }}>{error}</p>}
+      {emptyMsg && <p className="muted h2h-empty">{emptyMsg}</p>}
 
       {data && data.totalMatches === 0 && (
         <p className="muted" style={{ marginTop: '1rem' }}>

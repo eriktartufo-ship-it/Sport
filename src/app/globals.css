@@ -416,11 +416,11 @@ button {
 .medal-none { color: rgba(255, 255, 255, 0.3); }
 
 .muted {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
 }
 
 .muted-small {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--subtle);
   font-size: 0.85rem;
 }
 
@@ -598,17 +598,17 @@ button {
   display: inline-flex;
   gap: 2px;
   padding: 5px;
-  /* Glass SCURO come la bottom-nav di RGV (.nav-bottom): base dark trasparente
-     così la pill attiva (blu) e l'hover risaltano. Un fondo colorato brand
-     "mangiava" l'hover blu (feedback Erik 2026-07-05). */
-  background: var(--glass-bg);
+  /* Glass SCURO più OPACO della bottom-nav RGV: la barra deve leggersi come un
+     elemento solido, non "sparire" sul fondo (feedback Erik 2026-07-05: il nav
+     troppo trasparente non si vedeva). Blur attivo = resta liquid glass. */
+  background: rgba(15, 19, 33, 0.9);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    var(--glass-shadow);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 30px rgba(0, 0, 0, 0.55);
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -622,11 +622,11 @@ button {
   top: 5px;
   bottom: 5px;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.22);
-  border: 1px solid rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.32);
+  border: 1px solid rgba(96, 165, 250, 0.65);
   box-shadow:
-    0 4px 12px rgba(59, 130, 246, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 4px 14px rgba(59, 130, 246, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transition:
     left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
     width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
@@ -749,13 +749,14 @@ button {
     display: flex;
     width: 100%;
     padding: 6px;
-    /* Mobile: glass scuro come desktop (bottom-nav RGV). */
-    background: var(--glass-bg);
+    /* Mobile: glass scuro OPACO come desktop, chiaramente visibile. */
+    background: rgba(15, 19, 33, 0.92);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     box-shadow:
-      inset 0 1px 0 var(--glass-highlight),
-      var(--glass-shadow);
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 8px 30px rgba(0, 0, 0, 0.6);
   }
 
   .slide-tab {
@@ -840,7 +841,7 @@ button {
    Centrata per coerenza col titolo. Sostituisce gli inline style sui <p>. */
 .chart-desc {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
   margin-bottom: 1rem;
   text-align: center;
 }
@@ -933,26 +934,33 @@ button {
 
 .player-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
 }
 
 .player-card {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  /* pill totale, coerente con il nav e .player-pill */
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 0.55rem 0.65rem 0.55rem 0.9rem;
+  /* Riga pulita stile RGV (storico-row): non più pill, radius 12 + surface. */
+  border-radius: 12px;
+  background: var(--surface-sunk);
   border: 1px solid var(--glass-border);
   min-height: 52px;
+  transition: background var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+}
+
+.player-card:hover {
+  background: var(--surface-1);
+  border-color: var(--stroke);
 }
 
 .player-card-name {
   flex: 1;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1243,7 +1251,7 @@ button {
   text-align: center;
 }
 .settings-text {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
   text-align: center;
   margin: 0 0 1.5rem 0;
   font-size: 0.95rem;
@@ -1605,13 +1613,13 @@ button {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.85rem 1rem;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--glass-border);
   align-items: stretch;
 }
 
-.match-row + .match-row { margin-top: 0.5rem; }
+.match-row + .match-row { margin-top: 8px; }
 
 .match-row-head {
   display: flex;
@@ -1638,9 +1646,11 @@ button {
 }
 
 .match-row-date {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.8rem;
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .match-row-players {
@@ -1658,10 +1668,10 @@ button {
 }
 
 .match-row-podium-item {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--surface-1);
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--glass-border);
 }
 
 .match-row-others {
@@ -1669,7 +1679,7 @@ button {
   flex-wrap: wrap;
   gap: 0.4rem;
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--muted);
   align-items: center;
 }
 
@@ -1677,20 +1687,21 @@ button {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+  color: var(--subtle);
 }
 
 .match-row-others-item {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-sunk);
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--stroke);
 }
 
 .match-row-count {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--muted);
+  font-weight: 600;
   text-align: right;
 }
 
@@ -1870,10 +1881,11 @@ button {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 1rem;
-  padding: 1.2rem 0.5rem;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
+  padding: 1.5rem 0.5rem;
+  background: var(--kpi-card-gradient);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  margin-top: 1.25rem;
 }
 
 .h2h-side {
@@ -1887,7 +1899,7 @@ button {
 .h2h-name {
   font-weight: 600;
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1895,15 +1907,19 @@ button {
 }
 
 .h2h-wins {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 800;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: -0.03em;
+  color: var(--subtle);
   font-variant-numeric: tabular-nums;
 }
 
 .h2h-wins.leading {
-  color: var(--primary);
+  background: var(--kpi-num-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .h2h-divider {
@@ -1914,30 +1930,31 @@ button {
 }
 
 .h2h-total {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--muted);
   white-space: nowrap;
 }
 
 .h2h-ties {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--subtle);
   white-space: nowrap;
 }
 
 .h2h-history-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-top: 0.5rem;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.75rem;
+  color: var(--text);
 }
 
 .h2h-history {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 8px;
 }
 
 .h2h-row {
@@ -1945,22 +1962,24 @@ button {
   grid-template-columns: auto 1fr auto;
   gap: 0.75rem;
   align-items: center;
-  padding: 0.6rem 0.85rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  background: var(--surface-sunk);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
   font-size: 0.9rem;
 }
 
-.h2h-row-p1 { border-left: 3px solid var(--primary); }
+.h2h-row-p1 { border-left: 3px solid var(--accent); }
 .h2h-row-p2 { border-right: 3px solid #a78bfa; }
-.h2h-row-tie { border-left: 3px solid rgba(255, 255, 255, 0.2); }
+.h2h-row-tie { border-left: 3px solid var(--stroke); }
 
 .h2h-row-date {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .h2h-row-medals {
@@ -1978,14 +1997,15 @@ button {
 
 .h2h-row-sep {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--subtle);
   font-weight: 600;
   letter-spacing: 0.08em;
 }
 
 .h2h-row-winner {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--muted);
+  font-weight: 600;
   text-align: right;
   white-space: nowrap;
 }
@@ -2620,4 +2640,15 @@ button.lb-row:active { background: var(--surface-2); }
   font-size: 0.8rem;
   margin-top: -0.4rem;
   margin-bottom: 1rem;
+}
+
+/* H2H: stato vuoto "mai giocato insieme" (info, non errore) */
+.h2h-empty {
+  margin-top: 1.25rem;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: var(--surface-sunk);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  font-size: 0.9rem;
 }

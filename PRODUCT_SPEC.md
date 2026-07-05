@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 5.3 — 2026-07-05 (pack #42 — restyling classifiche stile RGV rank-item)
+> Versione: 5.4 — 2026-07-05 (pack #43 — restyle completo RGV: nav visibile, h2h, player, cronologia, stats)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
