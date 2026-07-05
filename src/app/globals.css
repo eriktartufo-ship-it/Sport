@@ -2661,34 +2661,54 @@ button.lb-row:active { background: var(--surface-2); }
 .lb-row.is-open .lb-caret { transform: rotate(90deg); }
 
 /* Dettaglio espandibile: pill compatte, non la griglia pesante di prima */
+/* Dettaglio espandibile: GRIGLIA ordinata di tessere (label sopra, valore
+   sotto) — allineate e uniformi, non pill sparse. 2 colonne su mobile. */
 .lb-details {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 4px 2px 8px 46px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 4px 6px 12px;
+}
+@media (min-width: 520px) {
+  .lb-details { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 .lb-stat {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 999px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
   background: var(--surface-1);
   border: 1px solid var(--glass-border);
-  font-size: 0.78rem;
+  min-width: 0;
 }
-.lb-stat-label { color: var(--muted); }
-.lb-stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+.lb-stat-label {
+  font-size: 0.64rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-stat-value {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
 
-/* Chip compagno (best/worst) nel dettaglio */
+/* Chip compagno (best/worst): tutta la larghezza, sotto le tessere. */
 .lb-mate {
+  grid-column: 1 / -1;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
   border: 1px solid;
 }
 .lb-mate-best { color: var(--success-text); background: rgba(48, 209, 88, 0.12); border-color: rgba(48, 209, 88, 0.35); }
