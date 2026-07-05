@@ -22,14 +22,17 @@ model Player {
   results3v3 Match3v3Player[]
   // Riusati anche per Machiavelli (gioco di carte): stesso pattern.
   resultsMachiavelli MatchMachiavelliPlayer[]
+  // Riusati anche per Padel (2v2): stesso pattern.
+  resultsPadel MatchPadelPlayer[]
 }
 
 model Sport {
   id                String             @id @default(uuid())
-  name              String             @unique // e.g. "K.O.", "3v3", "Machiavelli"
+  name              String             @unique // e.g. "K.O.", "3v3", "Machiavelli", "Padel"
   matches           Match[]
   matches3v3        Match3v3[]
   matchesMachiavelli MatchMachiavelli[]
+  matchesPadel      MatchPadel[]
 }
 
 model Match {
@@ -98,6 +101,31 @@ model MatchMachiavelliPlayer {
   player   Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
   playerId String
   position Int              @default(1) // 1 = vincitore; punti = position - 1
+
+  @@unique([matchId, playerId])
+}
+
+// Padel (2 vs 2): due coppie (squadra A e B). Il punteggio è registrato SET per
+// SET (es. 6-4, 3-6, 6-2). I set sono serializzati in `setsJson` come array JSON
+// di coppie [gamesA, gamesB] — SQLite non ha array nativi e lo scoring aggrega
+// comunque tutto lato JS. Vincitore = la coppia che ha vinto più set. Regole di
+// gioco (boccino d'oro a 40-40, vantaggi al set) nella scheda Regole, non nei dati.
+model MatchPadel {
+  id       String            @id @default(uuid())
+  sport    Sport             @relation(fields: [sportId], references: [id])
+  sportId  String
+  date     DateTime          @default(now())
+  setsJson String            // JSON: [[gamesA,gamesB], ...] in ordine di gioco
+  results  MatchPadelPlayer[]
+}
+
+model MatchPadelPlayer {
+  id       String     @id @default(uuid())
+  match    MatchPadel @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId  String
+  player   Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String
+  teamSide String     // "A" oppure "B"
 
   @@unique([matchId, playerId])
 }

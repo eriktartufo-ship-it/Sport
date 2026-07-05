@@ -89,6 +89,65 @@ export const MatchMachiavelliUpsertSchema = z
     path: ['orderedPlayerIds'],
   });
 
+/**
+ * Un set di padel valido, secondo le regole di casa (oro al game, VANTAGGI al set):
+ *  - vince chi arriva a 6 game con almeno 2 di scarto  → 6-0..6-4
+ *  - sul 6-6 si va ai vantaggi (niente tie-break) → 7-5, 8-6, 9-7, ... (scarto ESATTO 2)
+ * Quindi un set concluso (w, l) con w > l è valido sse:
+ *  - w == 6 && l <= 4, oppure
+ *  - w >= 7 && (w - l) == 2
+ */
+export function isValidPadelSet(a: number, b: number): boolean {
+  if (!Number.isInteger(a) || !Number.isInteger(b)) return false;
+  if (a < 0 || b < 0 || a > 30 || b > 30) return false;
+  if (a === b) return false;
+  const w = Math.max(a, b);
+  const l = Math.min(a, b);
+  if (w === 6 && l <= 4) return true;
+  if (w >= 7 && w - l === 2) return true;
+  return false;
+}
+
+/**
+ * Body per POST /api/matches/padel e PATCH /api/matches/padel/[id].
+ * Regole Padel:
+ *   - 2 giocatori per squadra (teamA + teamB), 4 tutti distinti
+ *   - da 1 a 5 set, ognuno un punteggio valido (isValidPadelSet)
+ *   - la partita deve avere un vincitore: una squadra vince più set dell'altra
+ */
+const PadelSetSchema = z
+  .object({ a: z.number().int().min(0).max(30), b: z.number().int().min(0).max(30) })
+  .refine((s) => isValidPadelSet(s.a, s.b), {
+    message: 'Set non valido: 6 con 2 di scarto (6-4), oppure ai vantaggi 7-5/8-6…',
+  });
+
+export const MatchPadelUpsertSchema = z
+  .object({
+    date: z.string().optional().nullable(),
+    teamA: z.array(z.string().min(1)).length(2, 'Squadra A deve avere 2 giocatori'),
+    teamB: z.array(z.string().min(1)).length(2, 'Squadra B deve avere 2 giocatori'),
+    sets: z.array(PadelSetSchema).min(1, 'Serve almeno 1 set').max(5, 'Massimo 5 set'),
+  })
+  .refine(
+    (d) => {
+      const all = [...d.teamA, ...d.teamB];
+      return new Set(all).size === all.length;
+    },
+    { message: 'Un giocatore non può essere in entrambe le squadre', path: ['teamB'] }
+  )
+  .refine(
+    (d) => {
+      let a = 0;
+      let b = 0;
+      for (const s of d.sets) {
+        if (s.a > s.b) a++;
+        else b++;
+      }
+      return a !== b;
+    },
+    { message: 'La partita deve avere un vincitore: una squadra deve vincere più set', path: ['sets'] }
+  );
+
 export type ParseResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };

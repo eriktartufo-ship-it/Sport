@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 5.1 — 2026-07-05 (pack #40 — Machiavelli ordine+punti, nav glass scuro RGV)
+> Versione: 5.2 — 2026-07-05 (pack #41 — nuovo sport Padel + scheda regole)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -28,6 +28,10 @@ Moduli attivi (dal pack #32, 2026-05-16):
   le carte in mano è ultimo. Punti di partita = posizione − 1 (vincitore 0). Classifica
   per persona ordinata per MEDIA punti a partita crescente (vince chi ne ha meno; la media
   compensa chi gioca meno partite), con punti totali, vittorie e serie corrente/migliore.
+- **Padel (2v2, pack #41 2026-07-05)** — 2 coppie, punteggio registrato SET per set
+  (es. 6-4, 3-6, 6-2). Regole di casa (boccino d'oro a 40-40, vantaggi al set) nella
+  scheda "Regole" interna. Classifica per coppia (set esatto) e per persona (con best/worst
+  compagno), con set/game vinti-persi e serie. Vincitore = coppia con più set.
 
 I `Player` sono condivisi tra i moduli. Gestione player disponibile in ogni modulo
 (`?tab=player`, componente condiviso `PlayerManagementCard`).
@@ -53,6 +57,10 @@ I `Player` sono condivisi tra i moduli. Gestione player disponibile in ogni modu
 - `MatchMachiavelli(id, sportId→Sport, date)` 1:N MatchMachiavelliPlayer
   (`position: Int`, 1 = vincitore; unique `(matchId, playerId)`). Punti = position − 1.
   Body upsert = `{date?, orderedPlayerIds:[..min 2 distinti]}` (l'indice determina la posizione).
+- `MatchPadel(id, sportId→Sport, date, setsJson)` 1:N MatchPadelPlayer
+  (`teamSide: "A"|"B"`, unique `(matchId, playerId)`). `setsJson` = array JSON `[[gamesA,gamesB],…]`.
+  Body upsert = `{date?, teamA:[2], teamB:[2], sets:[{a,b}]}` (1-5 set validi, un vincitore).
+  Set valido: 6 con ≤4, oppure ≥7 con scarto esatto 2 (vantaggi, niente tie-break).
 
 ## Regole di scoring K.O
 
@@ -162,6 +170,13 @@ nelle card mobile e nel tooltip mostra i due valori.
 | PATCH | `/api/matches/machiavelli/[id]` | admin | replace partecipanti/vincitore/data |
 | DELETE | `/api/matches/machiavelli/[id]` | admin | cancella partita + cascade results |
 | GET | `/api/stats/machiavelli?season=YYYY` | pubblico | `{players}`: classifica con streak corrente/migliore |
+| GET | `/api/seasons/padel` | pubblico | anni con almeno una partita Padel, desc |
+| GET | `/api/matches/padel?season=YYYY` | pubblico | cronologia Padel, max 50 |
+| POST | `/api/matches/padel` | admin | body: `{date?, teamA:[2], teamB:[2], sets:[{a,b}]}` |
+| GET | `/api/matches/padel/[id]` | pubblico | singola partita con results.player |
+| PATCH | `/api/matches/padel/[id]` | admin | replace coppie/set/data |
+| DELETE | `/api/matches/padel/[id]` | admin | cancella partita + cascade results |
+| GET | `/api/stats/padel?season=YYYY` | pubblico | `{teams, players}`: classifica coppie + persone (set/game/streak) |
 | GET | `/api/db/export` | admin | binario SQLite (backup completo) |
 | POST | `/api/db/import` | admin | multipart, distruttivo |
 | GET | `/api/export/csv/leaderboard?season=YYYY` | pubblico | classifica in CSV (UTF-8 BOM) per Excel/Sheets |

@@ -32,14 +32,24 @@ export async function DELETE(
       const counts = await prisma.player.findUnique({
         where: { id },
         select: {
-          _count: { select: { results: true, results3v3: true, resultsMachiavelli: true } },
+          _count: {
+            select: {
+              results: true,
+              results3v3: true,
+              resultsMachiavelli: true,
+              resultsPadel: true,
+            },
+          },
         },
       });
       if (!counts) {
         return NextResponse.json({ error: 'Giocatore non trovato' }, { status: 404 });
       }
       const totalResults =
-        counts._count.results + counts._count.results3v3 + counts._count.resultsMachiavelli;
+        counts._count.results +
+        counts._count.results3v3 +
+        counts._count.resultsMachiavelli +
+        counts._count.resultsPadel;
       if (totalResults > 0) {
         return NextResponse.json(
           {

@@ -36,6 +36,17 @@ export default function Home() {
           </p>
         </Link>
 
+        <Link href="/padel" className="sport-card">
+          <div className="sport-card-head">
+            <span className="sport-card-icon" aria-hidden="true">🎾</span>
+            <h2 className="sport-card-title">Padel</h2>
+          </div>
+          <p className="sport-card-desc">
+            2 vs 2 con le regole classiche (boccino d&apos;oro, vantaggi al set). Segna i set e
+            tieni le classifiche per coppia e per giocatore. Con la scheda regole sempre a portata.
+          </p>
+        </Link>
+
         <div className="sport-card sport-card-disabled">
           <div className="sport-card-head">
             <span className="sport-card-icon" aria-hidden="true">⚽</span>

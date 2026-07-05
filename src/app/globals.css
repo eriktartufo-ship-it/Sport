@@ -2272,3 +2272,140 @@ button {
   font-variant-numeric: tabular-nums;
 }
 .mk-standing.is-winner .mk-standing-pts { color: var(--gold); }
+
+/* ============================================================================
+ * PADEL (2 vs 2, punteggio a set)
+ * ========================================================================== */
+
+/* Editor set nella new-match/edit: righe "Set N: [A] - [B] (✕)" */
+.padel-set-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.padel-set-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.padel-set-label {
+  min-width: 54px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(248, 250, 252, 0.65);
+  text-align: right;
+}
+
+.padel-set-input {
+  width: 64px;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.5rem 0.4rem;
+}
+
+.padel-set-row.is-invalid .padel-set-input {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.padel-set-sep {
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.5);
+}
+
+.padel-set-remove {
+  width: 34px;
+  height: 34px;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.padel-add-set {
+  display: block;
+  margin: 1rem auto 0;
+}
+
+/* Cronologia: coppie + set */
+.padel-match-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.padel-teams {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.padel-team.is-winner {
+  color: var(--gold);
+}
+
+.padel-vs {
+  color: rgba(248, 250, 252, 0.45);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.padel-sets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.padel-set {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scheda Regole */
+.padel-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.padel-rule {
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+}
+
+.padel-rule-accent {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.padel-rule h3 {
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.padel-rule p {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.padel-rule strong {
+  color: var(--foreground);
+  font-weight: 700;
+}
