@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 4.6 — 2026-06-08 (post pack #38 — favicon basket brand-key)
+> Versione: 5.0 — 2026-07-05 (post pack #39 — nuovo sport Machiavelli, gioco di carte)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -23,8 +23,12 @@ registrare partite, importare/esportare DB) richiede admin.
 Moduli attivi (dal pack #32, 2026-05-16):
 - **K.O. (Basket)** — gioco a eliminazione, medaglie 🥇🥈🥉
 - **3vs3 (Basket FIBA 3x3)** — squadre da 3, punteggi 0–21, vincitore obbligato a 21
+- **Machiavelli (carte, pack #39 2026-07-05)** — partita libera con 2+ giocatori,
+  chi resta con le carte in mano perde: si registra solo il vincitore (1 per match).
+  Classifica per persona (vittorie, win-rate, serie di vittorie corrente/migliore).
 
-I `Player` sono condivisi tra i moduli. Gestione player resta in `/ko?tab=player`.
+I `Player` sono condivisi tra i moduli. Gestione player disponibile in ogni modulo
+(`?tab=player`, componente condiviso `PlayerManagementCard`).
 
 ### Out of scope (deliberatamente)
 
@@ -42,6 +46,11 @@ I `Player` sono condivisi tra i moduli. Gestione player resta in `/ko?tab=player
 - `Match(id, sportId→Sport, date@default(now()), playerCount)` 1:N MatchResult.
 - `MatchResult(id, matchId→Match, playerId→Player, medal: "GOLD"|"SILVER"|"BRONZE"|"NONE")`,
   unique `(matchId, playerId)`.
+- `Match3v3(id, sportId→Sport, date, teamAScore, teamBScore)` 1:N Match3v3Player
+  (`teamSide: "A"|"B"`, unique `(matchId, playerId)`).
+- `MatchMachiavelli(id, sportId→Sport, date)` 1:N MatchMachiavelliPlayer
+  (`isWinner: bool`, unique `(matchId, playerId)`; esattamente 1 winner garantito
+  dalla validation Zod `MatchMachiavelliUpsertSchema`).
 
 ## Regole di scoring K.O
 
@@ -144,6 +153,13 @@ nelle card mobile e nel tooltip mostra i due valori.
 | DELETE | `/api/matches/ko/[id]` | admin | cancella partita + cascade dei suoi MatchResult |
 | GET | `/api/stats/ko?season=YYYY` | pubblico | classifica con filtro stagione opzionale + trend/streak/bestWeek |
 | GET | `/api/stats/h2h?p1=&p2=` | pubblico | confronto diretto: wins/ties/cronologia. 400 missing/uguale, 404 player inesistente |
+| GET | `/api/seasons/machiavelli` | pubblico | array di anni con almeno una partita Machiavelli, desc |
+| GET | `/api/matches/machiavelli?season=YYYY` | pubblico | cronologia Machiavelli, max 50 |
+| POST | `/api/matches/machiavelli` | admin | body: `{date?, playerIds:[..min 2], winnerId}` (winner ∈ playerIds) |
+| GET | `/api/matches/machiavelli/[id]` | pubblico | singola partita con results.player |
+| PATCH | `/api/matches/machiavelli/[id]` | admin | replace partecipanti/vincitore/data |
+| DELETE | `/api/matches/machiavelli/[id]` | admin | cancella partita + cascade results |
+| GET | `/api/stats/machiavelli?season=YYYY` | pubblico | `{players}`: classifica con streak corrente/migliore |
 | GET | `/api/db/export` | admin | binario SQLite (backup completo) |
 | POST | `/api/db/import` | admin | multipart, distruttivo |
 | GET | `/api/export/csv/leaderboard?season=YYYY` | pubblico | classifica in CSV (UTF-8 BOM) per Excel/Sheets |
