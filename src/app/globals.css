@@ -2546,6 +2546,21 @@ button {
   flex-direction: column;
 }
 
+/* Ogni entry (riga + eventuale dettaglio) è un contenitore; il divisorio
+   MINIMAL sta TRA le entry, inset ai lati (non arriva ai bordi). */
+.lb-entry {
+  position: relative;
+}
+.lb-entry + .lb-entry::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: var(--divider);
+}
+
 .lb-row {
   display: grid;
   grid-template-columns: 34px 1fr auto;
@@ -2554,14 +2569,12 @@ button {
   width: 100%;
   padding: 12px 6px;
   border: none;
-  border-bottom: 1px solid var(--divider);
   background: transparent;
   color: var(--text);
   text-align: left;
   font-family: inherit;
   transition: background var(--dur) var(--ease-soft);
 }
-.lb-row:last-child { border-bottom: none; }
 button.lb-row { cursor: pointer; border-radius: 10px; }
 button.lb-row:hover { background: var(--surface-1); }
 button.lb-row:active { background: var(--surface-2); }

@@ -76,25 +76,21 @@ export default function Leaderboard({ rows, hero }: Props) {
             </>
           );
 
-          if (!clickable) {
-            return (
-              <div key={r.id} className="lb-row">
-                {inner}
-              </div>
-            );
-          }
-
           return (
-            <div key={r.id} style={{ display: 'contents' }}>
-              <button
-                type="button"
-                className={`lb-row ag-press${isOpen ? ' is-open' : ''}`}
-                onClick={() => setOpenId(isOpen ? null : r.id)}
-                aria-expanded={isOpen}
-              >
-                {inner}
-              </button>
-              {isOpen && <div className="lb-details">{r.details}</div>}
+            <div key={r.id} className="lb-entry">
+              {clickable ? (
+                <button
+                  type="button"
+                  className={`lb-row ag-press${isOpen ? ' is-open' : ''}`}
+                  onClick={() => setOpenId(isOpen ? null : r.id)}
+                  aria-expanded={isOpen}
+                >
+                  {inner}
+                </button>
+              ) : (
+                <div className="lb-row">{inner}</div>
+              )}
+              {clickable && isOpen && <div className="lb-details">{r.details}</div>}
             </div>
           );
         })}
