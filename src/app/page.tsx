@@ -26,6 +26,16 @@ export default function Home() {
           </p>
         </Link>
 
+        <Link href="/machiavelli" className="sport-card">
+          <div className="sport-card-head">
+            <span className="sport-card-icon" aria-hidden="true">🃏</span>
+            <h2 className="sport-card-title">Machiavelli</h2>
+          </div>
+          <p className="sport-card-desc">
+            Il gioco di carte: chi resta con le carte in mano perde. Tieni il conto di chi vince più spesso.
+          </p>
+        </Link>
+
         <div className="sport-card sport-card-disabled">
           <div className="sport-card-head">
             <span className="sport-card-icon" aria-hidden="true">⚽</span>

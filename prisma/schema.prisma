@@ -20,13 +20,16 @@ model Player {
   // Riusati per il modulo 3vs3 (basket squadre): un Player può
   // partecipare a Match3v3 senza migration. Cascade come per MatchResult.
   results3v3 Match3v3Player[]
+  // Riusati anche per Machiavelli (gioco di carte): stesso pattern.
+  resultsMachiavelli MatchMachiavelliPlayer[]
 }
 
 model Sport {
-  id         String     @id @default(uuid())
-  name       String     @unique // e.g. "K.O.", "3v3"
-  matches    Match[]
-  matches3v3 Match3v3[]
+  id                String             @id @default(uuid())
+  name              String             @unique // e.g. "K.O.", "3v3", "Machiavelli"
+  matches           Match[]
+  matches3v3        Match3v3[]
+  matchesMachiavelli MatchMachiavelli[]
 }
 
 model Match {
@@ -71,6 +74,29 @@ model Match3v3Player {
   player   Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
   playerId String
   teamSide String // "A" oppure "B"
+
+  @@unique([matchId, playerId])
+}
+
+// Machiavelli (gioco di carte): partita libera con 2+ giocatori,
+// vince chi finisce le carte per primo (chi le tiene in mano perde).
+// Nessun punteggio: solo il flag isWinner (esattamente 1 per match,
+// garantito dalla validation Zod).
+model MatchMachiavelli {
+  id      String                   @id @default(uuid())
+  sport   Sport                    @relation(fields: [sportId], references: [id])
+  sportId String
+  date    DateTime                 @default(now())
+  results MatchMachiavelliPlayer[]
+}
+
+model MatchMachiavelliPlayer {
+  id       String           @id @default(uuid())
+  match    MatchMachiavelli @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId  String
+  player   Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  playerId String
+  isWinner Boolean          @default(false)
 
   @@unique([matchId, playerId])
 }

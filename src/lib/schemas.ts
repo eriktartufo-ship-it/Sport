@@ -69,6 +69,29 @@ export const Match3v3UpsertSchema = z
     { message: 'Un giocatore non può essere in entrambe le squadre', path: ['teamB'] }
   );
 
+/**
+ * Body per POST /api/matches/machiavelli e PATCH /api/matches/machiavelli/[id].
+ * Regole Machiavelli (gioco di carte):
+ *   - almeno 2 giocatori, tutti distinti
+ *   - esattamente 1 vincitore, che deve essere tra i partecipanti
+ */
+export const MatchMachiavelliUpsertSchema = z
+  .object({
+    date: z.string().optional().nullable(),
+    playerIds: z
+      .array(z.string().min(1))
+      .min(2, 'Una partita di Machiavelli richiede almeno 2 giocatori'),
+    winnerId: z.string().min(1, 'Serve un vincitore'),
+  })
+  .refine((d) => new Set(d.playerIds).size === d.playerIds.length, {
+    message: 'Un giocatore non può comparire due volte',
+    path: ['playerIds'],
+  })
+  .refine((d) => d.playerIds.includes(d.winnerId), {
+    message: 'Il vincitore deve essere uno dei partecipanti',
+    path: ['winnerId'],
+  });
+
 export type ParseResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };

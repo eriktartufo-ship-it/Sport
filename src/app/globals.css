@@ -20,6 +20,13 @@
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-highlight: rgba(255, 255, 255, 0.06);
   --glass-shadow: 0 12px 36px rgba(0, 0, 0, 0.32);
+  /* Motion tokens (design system Antigravity, stessi valori di tokens.css) */
+  --dur-fast: 150ms;
+  --dur: 200ms;
+  --dur-slow: 300ms;
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-snap: cubic-bezier(0.2, 0, 0.2, 1);
 }
 
 * {
@@ -2104,4 +2111,97 @@ button {
     font-size: 0.78rem;
     min-width: 0;
   }
+}
+
+/* ============================================================================
+ * MOTION — primitive del design system Antigravity (motion.css, come RGV).
+ * Solo transform/opacity (GPU), tutto dietro prefers-reduced-motion.
+ * ========================================================================== */
+
+/* Press: l'elemento "cede" alla pressione. Solo dove c'è azione. */
+.ag-press {
+  transition: transform var(--dur-fast) var(--ease-snap);
+}
+.ag-press:active {
+  transform: scale(0.97);
+}
+@media (hover: none) {
+  .ag-press:active {
+    transform: scale(0.96);
+  }
+}
+
+/* Scroll-driven reveal: l'elemento appare mentre entra nel viewport.
+   Degrada a "sempre visibile" se il browser non supporta scroll timelines. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: ag-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    .reveal--up {
+      animation-name: ag-reveal-up;
+    }
+  }
+}
+@keyframes ag-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ag-reveal-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Success pop: per la corona/spunta di conferma. */
+@media (prefers-reduced-motion: no-preference) {
+  .ag-check-pop {
+    display: inline-block;
+    animation: ag-check-pop var(--dur-slow) var(--ease-bounce) both;
+  }
+}
+@keyframes ag-check-pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-press,
+  .reveal,
+  .ag-check-pop {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ============================================================================
+ * MACHIAVELLI (gioco di carte)
+ * ========================================================================== */
+
+/* Pill del vincitore: stato "oro" (famiglia --gold, come le medaglie K.O.) */
+.player-pill-winner {
+  border-color: rgba(251, 191, 36, 0.65);
+  background: rgba(251, 191, 36, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 14px -2px rgba(251, 191, 36, 0.35);
+}
+
+/* Cronologia: riga vincitore + altri partecipanti */
+.mk-match-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mk-winner {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.mk-others {
+  color: rgba(248, 250, 252, 0.65);
+  font-size: 0.9rem;
 }
