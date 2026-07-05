@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import ThemeToggle from './ThemeToggle';
 
 export default function AuthHeader() {
   const pathname = usePathname();
@@ -68,6 +69,7 @@ export default function AuthHeader() {
       </Link>
 
       <div className="app-header-right">
+        <ThemeToggle />
         <Link href="/settings" className="app-header-link" title="Impostazioni">⚙️</Link>
 
         {authenticated === null ? null : authenticated ? (

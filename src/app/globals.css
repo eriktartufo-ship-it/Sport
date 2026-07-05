@@ -1,16 +1,24 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --card-bg: rgba(30, 41, 59, 0.7);
+  /* Palette allineata al design system RGV (liquid-glass.css). Dark = default. */
+  --page-bg: #0b0d12;
+  --page-gradient:
+    radial-gradient(at 10% 0%, rgba(56, 122, 223, 0.28) 0%, transparent 55%),
+    radial-gradient(at 90% 10%, rgba(181, 74, 155, 0.24) 0%, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(72, 186, 138, 0.18) 0%, transparent 55%);
+  --background: var(--page-bg);
+  --foreground: #f2f3f5;
+  --primary: #0a84ff;
+  --primary-hover: #5ca8ff;
+  --card-bg: rgba(30, 32, 40, 0.45);
   --card-border: rgba(255, 255, 255, 0.1);
+  --nav-bg: rgba(15, 19, 33, 0.9);
+  --input-bg: rgba(0, 0, 0, 0.25);
   --gold: #fbbf24;
   --silver: #94a3b8;
   --bronze: #b45309;
-  --danger: #ef4444;
+  --danger: #ff453a;
   --radius: 16px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --app-header-height: 60px;
@@ -32,8 +40,8 @@
   --text: #f2f3f5;
   --muted: #a0a3a8;
   --subtle: #7c7f85;
-  --accent: #3b82f6;
-  --accent-bg: rgba(59, 130, 246, 0.22);
+  --accent: #0a84ff;
+  --accent-bg: rgba(10, 132, 255, 0.22);
   --accent-text: #93c5fd;
   --success-text: #86efac;
   --danger-text: #fca5a5;
@@ -45,6 +53,62 @@
   --brand-text-gradient: linear-gradient(135deg, #60a5fa, #a78bfa);
   --kpi-num-gradient: linear-gradient(135deg, #ffffff, #c4d4ff);
   --kpi-card-gradient: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(167, 139, 250, 0.08));
+  --icon-btn-bg: rgba(255, 255, 255, 0.06);
+  --icon-btn-hover: rgba(255, 255, 255, 0.12);
+  --ghost-bg: rgba(96, 165, 250, 0.12);
+  --ghost-bg-hover: rgba(96, 165, 250, 0.22);
+  --ghost-border: rgba(96, 165, 250, 0.32);
+}
+
+/* ============================================================================
+ * LIGHT THEME (day mode) — attivato da <html data-theme="light"> (toggle header).
+ * Stessi accent/pattern del dark, superfici e testo invertiti (valori RGV).
+ * ========================================================================== */
+:root[data-theme="light"] {
+  --page-bg: #f6f7fb;
+  --page-gradient:
+    radial-gradient(at 10% 0%, rgba(56, 122, 223, 0.10) 0%, transparent 55%),
+    radial-gradient(at 90% 10%, rgba(181, 74, 155, 0.08) 0%, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(72, 186, 138, 0.06) 0%, transparent 55%);
+  --foreground: #1a1d2a;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(15, 23, 42, 0.10);
+  --nav-bg: rgba(255, 255, 255, 0.88);
+  --input-bg: #ffffff;
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(15, 23, 42, 0.10);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  --text: #1a1d2a;
+  --muted: #5a6371;
+  --subtle: #8a909a;
+  --accent-text: #1d4ed8;
+  --success-text: #15803d;
+  --danger-text: #b91c1c;
+  --surface-1: rgba(15, 23, 42, 0.06);
+  --surface-2: rgba(15, 23, 42, 0.10);
+  --surface-sunk: rgba(15, 23, 42, 0.04);
+  --stroke: rgba(15, 23, 42, 0.08);
+  --divider: rgba(15, 23, 42, 0.08);
+  --brand-text-gradient: linear-gradient(135deg, #1d4ed8, #7c3aed);
+  --kpi-num-gradient: linear-gradient(135deg, #1a1d2a, #4c6ef5);
+  --kpi-card-gradient: linear-gradient(135deg, rgba(96, 165, 250, 0.12), rgba(167, 139, 250, 0.12));
+  --icon-btn-bg: rgba(15, 23, 42, 0.05);
+  --icon-btn-hover: rgba(15, 23, 42, 0.10);
+  --ghost-bg: rgba(29, 78, 216, 0.10);
+  --ghost-bg-hover: rgba(29, 78, 216, 0.16);
+  --ghost-border: rgba(29, 78, 216, 0.35);
+  color-scheme: light;
+}
+
+/* Select nativi in light: niente bg dark hardcoded, glass chiaro. */
+:root[data-theme="light"] select {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
+}
+:root[data-theme="light"] select option {
+  background-color: #ffffff;
+  color: var(--text);
 }
 
 * {
@@ -54,12 +118,9 @@
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  background-image:
-    radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(225,39%,30%,0.2) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(339,49%,30%,0.2) 0, transparent 50%);
+  color: var(--text);
+  background: var(--page-bg);
+  background-image: var(--page-gradient);
   background-attachment: fixed;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
@@ -98,8 +159,9 @@ button {
   font-weight: 800;
   text-align: center;
   margin-bottom: 2rem;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
+  background: var(--brand-text-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -169,23 +231,8 @@ button {
   }
 }
 
-.card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    var(--glass-shadow);
-}
-
-@media (hover: none) {
-  .card:hover {
-    transform: none;
-    border-color: var(--glass-border);
-    box-shadow:
-      inset 0 1px 0 var(--glass-highlight),
-      0 4px 16px rgba(0, 0, 0, 0.18);
-  }
-}
+/* Le card grandi NON si muovono all'hover (come RGV): sono contenitori, non
+   elementi interattivi. Solo le righe/pill cliccabili hanno feedback hover. */
 
 .card-title {
   margin-bottom: 1rem;
@@ -249,11 +296,11 @@ button {
 }
 
 .btn-ghost {
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--ghost-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  color: var(--foreground);
+  border: 1px solid var(--ghost-border);
+  color: var(--text);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
 }
 
@@ -279,8 +326,8 @@ button {
 }
 
 .btn-ghost:hover {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--ghost-bg-hover);
+  border-color: var(--ghost-border);
   transform: translateY(-1px);
   box-shadow:
     inset 0 1px 0 var(--glass-highlight),
@@ -367,7 +414,7 @@ button {
   -webkit-text-fill-color: transparent;
 }
 .sport-card-desc {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.4;
@@ -442,9 +489,9 @@ button {
   /* Radius classico (8px): pill 999 sugli input era esuberante e creava
      allineamenti strani col label/contenitore. */
   border-radius: 8px;
-  border: 1px solid var(--card-border);
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--foreground);
+  border: 1px solid var(--glass-border);
+  background: var(--input-bg);
+  color: var(--text);
   font-family: inherit;
   /* 16px previene zoom auto iOS quando si focussa un input */
   font-size: 16px;
@@ -492,8 +539,9 @@ button {
 .app-header-brand {
   font-weight: 700;
   font-size: 1.15rem;
-  background: linear-gradient(to right, #60a5fa, #a78bfa);
+  background: var(--brand-text-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -515,17 +563,17 @@ button {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--icon-btn-bg);
   border: 1px solid var(--glass-border);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text);
   text-decoration: none;
 }
 
 .app-header-link:hover {
-  background: rgba(0, 0, 0, 0.35);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--foreground);
+  background: var(--icon-btn-hover);
+  border-color: var(--stroke);
+  color: var(--text);
 }
 
 .auth-pill {
@@ -533,7 +581,7 @@ button {
   padding: 0.35rem 0.75rem;
   border-radius: 999px;
   border: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--surface-1);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
   white-space: nowrap;
 }
@@ -601,7 +649,7 @@ button {
   /* Glass SCURO più OPACO della bottom-nav RGV: la barra deve leggersi come un
      elemento solido, non "sparire" sul fondo (feedback Erik 2026-07-05: il nav
      troppo trasparente non si vedeva). Blur attivo = resta liquid glass. */
-  background: rgba(15, 19, 33, 0.9);
+  background: var(--nav-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -645,7 +693,7 @@ button {
   font-size: 0.9rem;
   font-weight: 600;
   background: transparent;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--muted);
   border: none;
   border-radius: 999px;
   cursor: pointer;
@@ -655,8 +703,8 @@ button {
   min-height: 40px;
 }
 
-.slide-tab:hover { color: var(--foreground); }
-.slide-tab.active { color: #93c5fd; }
+.slide-tab:hover { color: var(--text); }
+.slide-tab.active { color: var(--accent-text); }
 
 /* Tab CTA (legacy, ora il "Registra" è un FAB separato, non più tab).
    Lascio le regole per compatibilità: se in futuro vogliamo riusare
@@ -750,7 +798,7 @@ button {
     width: 100%;
     padding: 6px;
     /* Mobile: glass scuro OPACO come desktop, chiaramente visibile. */
-    background: rgba(15, 19, 33, 0.92);
+    background: var(--nav-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid rgba(255, 255, 255, 0.16);
@@ -980,7 +1028,7 @@ button {
 
 .season-selector-label {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
 }
 
 .season-selector-select,
@@ -989,19 +1037,20 @@ button {
   padding: 0.5rem 2rem 0.5rem 1rem;
   min-height: 40px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--input-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
-  color: var(--foreground);
+  color: var(--text);
   font-size: 0.9rem;
   font-weight: 500;
   /* Chevron custom via SVG inline (le freccette native dei select
-     sono brutte e incoerenti tra browser) */
+     sono brutte e incoerenti tra browser). Grigio neutro = leggibile
+     su fondo chiaro e scuro. */
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5l3 3 3-3' stroke='%23ffffff99' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5l3 3 3-3' stroke='%23888f9c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.7rem center;
   cursor: pointer;
@@ -1009,8 +1058,7 @@ button {
 
 .season-selector-select:hover,
 .h2h-select:hover {
-  background-color: rgba(0, 0, 0, 0.38);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--stroke);
 }
 
 /* ============================================================
@@ -1057,7 +1105,7 @@ button {
   padding: 0.2rem 0.7rem;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.3);
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
   border: 1px solid var(--glass-border);
 }
 .team3v3-count.is-full {
@@ -1148,7 +1196,7 @@ button {
 }
 .team3v3-record {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1308,12 +1356,12 @@ button {
   padding: 0.5rem 1.1rem;
   min-height: 40px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--surface-1);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
-  color: var(--foreground);
+  color: var(--text);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -1321,20 +1369,20 @@ button {
   white-space: nowrap;
 }
 .deleted-toggle:hover {
-  background: rgba(0, 0, 0, 0.38);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--surface-2);
+  border-color: var(--stroke);
 }
 .deleted-toggle.is-active {
-  background: rgba(59, 130, 246, 0.22);
-  border-color: rgba(59, 130, 246, 0.5);
-  color: white;
+  background: var(--accent-bg);
+  border-color: var(--accent);
+  color: var(--accent-text);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 4px 12px rgba(59, 130, 246, 0.25);
+    0 4px 12px rgba(10, 132, 255, 0.25);
 }
 .deleted-toggle.is-active:hover {
-  background: rgba(59, 130, 246, 0.32);
-  border-color: rgba(59, 130, 246, 0.6);
+  background: var(--accent-bg);
+  border-color: var(--accent);
 }
 
 /* Leaderboard table */
@@ -1715,19 +1763,19 @@ button {
   min-width: 38px;
   min-height: 38px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--icon-btn-bg);
   border: 1px solid var(--glass-border);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--muted);
   font-size: 0.9rem;
   transition: var(--transition);
   text-decoration: none;
 }
 
 .match-row-edit:hover {
-  background: rgba(0, 0, 0, 0.38);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--foreground);
+  background: var(--icon-btn-hover);
+  border-color: var(--stroke);
+  color: var(--text);
 }
 
 
@@ -1784,10 +1832,10 @@ button {
 .icon-btn {
   /* Cerchio glass coerente con l'ingranaggio .app-header-link.
      Padding 0 perché width/height fissano la geometria. */
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--icon-btn-bg);
   border: 1px solid var(--glass-border);
   box-shadow: inset 0 1px 0 var(--glass-highlight);
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--muted);
   padding: 0;
   border-radius: 999px;
   font-size: 0.95rem;
@@ -1802,9 +1850,9 @@ button {
 }
 
 .icon-btn:hover {
-  background: rgba(0, 0, 0, 0.38);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--foreground);
+  background: var(--icon-btn-hover);
+  border-color: var(--stroke);
+  color: var(--text);
 }
 
 .icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -2048,8 +2096,8 @@ button {
   /* border-radius pill totale, coerente con il nav .slide-tabs */
   border-radius: 999px;
   border: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--foreground);
+  background: var(--surface-1);
+  color: var(--text);
   font-weight: 600;
   font-size: 1rem;
   transition: var(--transition);
@@ -2058,8 +2106,8 @@ button {
 }
 
 .player-pill:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--stroke);
+  background: var(--surface-2);
 }
 
 .player-pill-selected {
