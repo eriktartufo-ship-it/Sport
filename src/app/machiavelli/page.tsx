@@ -6,6 +6,7 @@ import Link from 'next/link';
 import SeasonSelector from '@/components/SeasonSelector';
 import RegisterFab from '@/components/RegisterFab';
 import PlayerManagementCard from '@/components/PlayerManagementCard';
+import Leaderboard, { LbStat } from '@/components/Leaderboard';
 
 type PlayerRankingMachiavelli = {
   id: string;
@@ -114,53 +115,35 @@ export default function DashboardMachiavelli() {
         {activeTab === 'classifica' && (
           <div className="card">
             <h2 className="card-title">Classifica</h2>
+            <p className="card-hint">Vince chi ha la media punti più bassa. Tocca una riga per i dettagli.</p>
             {loading ? (
               <p>Caricamento...</p>
             ) : persons.length === 0 ? (
               <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
             ) : (
-              <div className="team3v3-list">
-                {persons.map((p, idx) => (
-                  <div key={p.id} className="team3v3-card reveal reveal--up">
-                    <div className="team3v3-head">
-                      <span className="team3v3-pos">#{idx + 1}</span>
-                      <span className="team3v3-names">
-                        {idx === 0 && p.played > 0 && <span aria-hidden="true">👑 </span>}
-                        {p.name}
-                      </span>
-                      <span className="team3v3-record">
-                        <strong>{p.pointsAvg.toFixed(2)}</strong> pt/partita
-                      </span>
-                    </div>
-                    <div className="team3v3-stats">
-                      <div>
-                        <span className="mc-stat-label">Punti tot</span>
-                        <span className="mc-stat-value">{p.points}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Media pt</span>
-                        <span className="mc-stat-value">{p.pointsAvg.toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Partite</span>
-                        <span className="mc-stat-value">{p.played}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Vittorie</span>
-                        <span className="mc-stat-value">{p.wins}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Serie ora</span>
-                        <span className="mc-stat-value">{p.currentStreak > 0 ? `🔥 ${p.currentStreak}` : '—'}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Serie top</span>
-                        <span className="mc-stat-value">{p.bestStreak}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Leaderboard
+                rows={persons.map((p, idx) => ({
+                  id: p.id,
+                  name: p.name,
+                  crown: idx === 0 && p.played > 0,
+                  badges: p.currentStreak > 1 ? <span className="streak-badge">🔥{p.currentStreak}</span> : undefined,
+                  primaryValue: p.pointsAvg.toFixed(2),
+                  primaryLabel: 'Media pt',
+                  sub: (
+                    <>
+                      🏆 {p.wins} vittorie <span className="lb-sub-sep">·</span> {p.played} partite
+                    </>
+                  ),
+                  details: (
+                    <>
+                      <LbStat label="Punti totali" value={p.points} />
+                      <LbStat label="Vittorie" value={p.wins} />
+                      <LbStat label="Serie in corso" value={p.currentStreak > 0 ? `🔥 ${p.currentStreak}` : '—'} />
+                      <LbStat label="Serie migliore" value={p.bestStreak} />
+                    </>
+                  ),
+                }))}
+              />
             )}
           </div>
         )}

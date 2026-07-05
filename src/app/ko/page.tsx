@@ -8,6 +8,7 @@ import SeasonSelector from '@/components/SeasonSelector';
 import HeadToHead from '@/components/HeadToHead';
 import RegisterFab from '@/components/RegisterFab';
 import PlayerManagementCard from '@/components/PlayerManagementCard';
+import Leaderboard, { LbStat } from '@/components/Leaderboard';
 
 type Trend = 'up' | 'down' | 'stable' | 'unknown';
 
@@ -135,8 +136,8 @@ export default function KODashboard() {
             ) : stats.length === 0 ? (
               <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
             ) : (
-              <div className="leaderboard-cards">
-                {stats.map((s, idx) => {
+              <Leaderboard
+                rows={stats.map((s) => {
                   const trendNode = s.trend !== 'unknown' && (
                     <span
                       className={`trend trend-${s.trend}`}
@@ -147,45 +148,41 @@ export default function KODashboard() {
                     </span>
                   );
                   const mediaPunti = (s.score / (s.matchesPlayed || 1)).toFixed(1);
-                  return (
-                    <div key={s.id} className="lb-card">
-                      <div className="mc-header">
-                        <span className="mc-pos">#{idx + 1}</span>
-                        <span className="mc-name">
-                          {s.name}
-                          {trendNode}
-                          {s.currentStreak >= 2 && (
-                            <span
-                              className="streak-badge"
-                              title={`${s.currentStreak} vittorie consecutive`}
-                              aria-label={`${s.currentStreak} vittorie consecutive`}
-                            >
-                              🔥{s.currentStreak}
-                            </span>
-                          )}
-                        </span>
-                        <div className="mc-score-block">
-                          <span className="mc-score-label">Score</span>
-                          <span className="mc-score-value">{s.score}</span>
-                        </div>
-                      </div>
-                      <div className="mc-medals">
-                        <div className="mc-medal"><span aria-hidden="true">🥇</span> {s.gold}</div>
-                        <div className="mc-medal"><span aria-hidden="true">🥈</span> {s.silver}</div>
-                        <div className="mc-medal"><span aria-hidden="true">🥉</span> {s.bronze}</div>
-                      </div>
-                      <div className="mc-stats">
-                        <div><span className="mc-stat-label">Partite</span><span className="mc-stat-value">{s.matchesPlayed}</span></div>
-                        <div><span className="mc-stat-label">Giornate</span><span className="mc-stat-value">{s.daysPlayed}</span></div>
-                        <div><span className="mc-stat-label">Media</span><span className="mc-stat-value">{mediaPunti}</span></div>
-                        <div><span className="mc-stat-label">Podio</span><span className="mc-stat-value">{s.podiumPercentage}%</span></div>
-                        <div><span className="mc-stat-label">Best Streak</span><span className="mc-stat-value">{s.bestStreak > 0 ? `🔥${s.bestStreak}` : '—'}</span></div>
-                        <div title={s.bestWeekKey ?? undefined}><span className="mc-stat-label">Best Week</span><span className="mc-stat-value">{s.bestWeekPoints > 0 ? s.bestWeekPoints : '—'}</span></div>
-                      </div>
-                    </div>
-                  );
+                  return {
+                    id: s.id,
+                    name: s.name,
+                    badges: (
+                      <>
+                        {trendNode}
+                        {s.currentStreak >= 2 && (
+                          <span className="streak-badge" title={`${s.currentStreak} vittorie consecutive`}>
+                            🔥{s.currentStreak}
+                          </span>
+                        )}
+                      </>
+                    ),
+                    primaryValue: String(s.score),
+                    primaryLabel: 'Score',
+                    sub: (
+                      <>
+                        <span title="Oro">🥇 {s.gold}</span>
+                        <span title="Argento">🥈 {s.silver}</span>
+                        <span title="Bronzo">🥉 {s.bronze}</span>
+                        <span className="lb-sub-sep">·</span> {s.matchesPlayed} partite
+                      </>
+                    ),
+                    details: (
+                      <>
+                        <LbStat label="Media" value={mediaPunti} />
+                        <LbStat label="Podio" value={`${s.podiumPercentage}%`} />
+                        <LbStat label="Giornate" value={s.daysPlayed} />
+                        <LbStat label="Serie migliore" value={s.bestStreak > 0 ? `🔥 ${s.bestStreak}` : '—'} />
+                        <LbStat label="Best week" value={s.bestWeekPoints > 0 ? s.bestWeekPoints : '—'} />
+                      </>
+                    ),
+                  };
                 })}
-              </div>
+              />
             )}
           </div>
         )}

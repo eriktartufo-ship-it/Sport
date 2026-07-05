@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 5.2 — 2026-07-05 (pack #41 — nuovo sport Padel + scheda regole)
+> Versione: 5.3 — 2026-07-05 (pack #42 — restyling classifiche stile RGV rank-item)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 

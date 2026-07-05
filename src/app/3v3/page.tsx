@@ -6,6 +6,7 @@ import Link from 'next/link';
 import SeasonSelector from '@/components/SeasonSelector';
 import RegisterFab from '@/components/RegisterFab';
 import PlayerManagementCard from '@/components/PlayerManagementCard';
+import Leaderboard, { LbStat } from '@/components/Leaderboard';
 
 type Side = 'A' | 'B';
 
@@ -146,47 +147,35 @@ export default function Dashboard3v3() {
       <div className="dashboard-content">
         {activeTab === 'classifica' && (
           <div className="card">
-            <h2 className="card-title">Classifica Squadre (combinazione esatta)</h2>
+            <h2 className="card-title">Classifica Squadre</h2>
+            <p className="card-hint">Combinazione esatta di 3 giocatori. Tocca una riga per i dettagli.</p>
             {loading ? (
               <p>Caricamento...</p>
             ) : teams.length === 0 ? (
               <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
             ) : (
-              <div className="team3v3-list">
-                {teams.map((t, idx) => (
-                  <div key={t.teamKey} className="team3v3-card">
-                    <div className="team3v3-head">
-                      <span className="team3v3-pos">#{idx + 1}</span>
-                      <span className="team3v3-names">{t.playerNames.join(' + ')}</span>
-                      <span className="team3v3-record">
-                        <strong>{t.wins}</strong>W · {t.losses}L
-                      </span>
-                    </div>
-                    <div className="team3v3-stats">
-                      <div>
-                        <span className="mc-stat-label">Win%</span>
-                        <span className="mc-stat-value">{pct(t.winRate)}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Partite</span>
-                        <span className="mc-stat-value">{t.played}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Fatti</span>
-                        <span className="mc-stat-value">{t.pointsScoredTotal}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Subiti</span>
-                        <span className="mc-stat-value">{t.pointsConcededTotal}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">+/- avg</span>
-                        <span className="mc-stat-value">{signed(t.pointDiffAvg)}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Leaderboard
+                rows={teams.map((t, idx) => ({
+                  id: t.teamKey,
+                  name: t.playerNames.join(' + '),
+                  crown: idx === 0 && t.wins > 0,
+                  primaryValue: pct(t.winRate),
+                  primaryLabel: 'Win',
+                  primaryTone: 'accent',
+                  sub: (
+                    <>
+                      {t.wins}V-{t.losses}S <span className="lb-sub-sep">·</span> {t.played} partite
+                    </>
+                  ),
+                  details: (
+                    <>
+                      <LbStat label="Punti fatti" value={t.pointsScoredTotal} />
+                      <LbStat label="Punti subiti" value={t.pointsConcededTotal} />
+                      <LbStat label="+/- media" value={signed(t.pointDiffAvg)} />
+                    </>
+                  ),
+                }))}
+              />
             )}
           </div>
         )}
@@ -194,64 +183,41 @@ export default function Dashboard3v3() {
         {activeTab === 'persone' && (
           <div className="card">
             <h2 className="card-title">Classifica Persone</h2>
+            <p className="card-hint">Tocca una riga per medie e compagni migliori/peggiori.</p>
             {loading ? (
               <p>Caricamento...</p>
             ) : persons.length === 0 ? (
               <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
             ) : (
-              <div className="team3v3-list">
-                {persons.map((p, idx) => (
-                  <div key={p.id} className="team3v3-card">
-                    <div className="team3v3-head">
-                      <span className="team3v3-pos">#{idx + 1}</span>
-                      <span className="team3v3-names">{p.name}</span>
-                      <span className="team3v3-record">
-                        <strong>{p.wins}</strong>W · {p.losses}L
-                      </span>
-                    </div>
-                    <div className="team3v3-stats">
-                      <div>
-                        <span className="mc-stat-label">Win%</span>
-                        <span className="mc-stat-value">{pct(p.winRate)}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Partite</span>
-                        <span className="mc-stat-value">{p.played}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Pt sq. avg</span>
-                        <span className="mc-stat-value">{p.pointsScoredAvg.toFixed(1)}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Margine avg</span>
-                        <span className="mc-stat-value">{signed(p.marginAvg)}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Quando vince</span>
-                        <span className="mc-stat-value">{signed(p.marginAvgOnWins)}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Quando perde</span>
-                        <span className="mc-stat-value">{signed(p.marginAvgOnLosses)}</span>
-                      </div>
-                    </div>
-                    {(p.bestTeammate || p.worstTeammate) && (
-                      <div className="team3v3-mates">
-                        {p.bestTeammate && (
-                          <span className="team3v3-mate team3v3-mate-best" title={`${p.bestTeammate.winsTogether}/${p.bestTeammate.matchesTogether} partite`}>
-                            🤝 best: <strong>{p.bestTeammate.name}</strong> {pct(p.bestTeammate.winRateTogether)}
-                          </span>
-                        )}
-                        {p.worstTeammate && (
-                          <span className="team3v3-mate team3v3-mate-worst" title={`${p.worstTeammate.winsTogether}/${p.worstTeammate.matchesTogether} partite`}>
-                            💔 worst: <strong>{p.worstTeammate.name}</strong> {pct(p.worstTeammate.winRateTogether)}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <Leaderboard
+                rows={persons.map((p, idx) => ({
+                  id: p.id,
+                  name: p.name,
+                  crown: idx === 0 && p.wins > 0,
+                  primaryValue: pct(p.winRate),
+                  primaryLabel: 'Win',
+                  primaryTone: 'accent',
+                  sub: (
+                    <>
+                      {p.wins}V-{p.losses}S <span className="lb-sub-sep">·</span> {p.played} partite
+                    </>
+                  ),
+                  details: (
+                    <>
+                      <LbStat label="Pt squadra/media" value={p.pointsScoredAvg.toFixed(1)} />
+                      <LbStat label="Margine" value={signed(p.marginAvg)} />
+                      <LbStat label="Se vince" value={signed(p.marginAvgOnWins)} />
+                      <LbStat label="Se perde" value={signed(p.marginAvgOnLosses)} />
+                      {p.bestTeammate && (
+                        <span className="lb-mate lb-mate-best">🤝 {p.bestTeammate.name} {pct(p.bestTeammate.winRateTogether)}</span>
+                      )}
+                      {p.worstTeammate && (
+                        <span className="lb-mate lb-mate-worst">💔 {p.worstTeammate.name} {pct(p.worstTeammate.winRateTogether)}</span>
+                      )}
+                    </>
+                  ),
+                }))}
+              />
             )}
           </div>
         )}

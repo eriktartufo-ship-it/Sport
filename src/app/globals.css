@@ -27,6 +27,24 @@
   --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-snap: cubic-bezier(0.2, 0, 0.2, 1);
+  /* Token allineati al design system RGV (liquid-glass.css) — usati dalle
+     nuove classifiche in stile "rank-item". Sport resta dark-only. */
+  --text: #f2f3f5;
+  --muted: #a0a3a8;
+  --subtle: #7c7f85;
+  --accent: #3b82f6;
+  --accent-bg: rgba(59, 130, 246, 0.22);
+  --accent-text: #93c5fd;
+  --success-text: #86efac;
+  --danger-text: #fca5a5;
+  --surface-1: rgba(255, 255, 255, 0.06);
+  --surface-2: rgba(255, 255, 255, 0.11);
+  --surface-sunk: rgba(0, 0, 0, 0.25);
+  --stroke: rgba(255, 255, 255, 0.08);
+  --divider: rgba(255, 255, 255, 0.08);
+  --brand-text-gradient: linear-gradient(135deg, #60a5fa, #a78bfa);
+  --kpi-num-gradient: linear-gradient(135deg, #ffffff, #c4d4ff);
+  --kpi-card-gradient: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(167, 139, 250, 0.08));
 }
 
 * {
@@ -2408,4 +2426,198 @@ button {
 .padel-rule strong {
   color: var(--foreground);
   font-weight: 700;
+}
+
+/* ============================================================================
+ * LEADERBOARD — stile "rank-item" del design system RGV (cruscotto).
+ * Sostituisce la vecchia griglia di 6 mini-box (confusa): 1 riga pulita per
+ * ogni entry = [posizione] [nome + sottoriga] [metrica grande]. Podio colorato,
+ * dettaglio completo espandibile al tap. Usato da tutti gli sport.
+ * ========================================================================== */
+
+/* Striscia KPI in testa alla classifica (numeri di sintesi) */
+.lb-hero {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.lb-hero-card {
+  padding: 14px 12px;
+  border-radius: 14px;
+  background: var(--kpi-card-gradient);
+  border: 1px solid var(--glass-border);
+  text-align: center;
+}
+.lb-hero-num {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: var(--kpi-num-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+.lb-hero-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 5px;
+}
+@media (min-width: 640px) {
+  .lb-hero-num { font-size: 32px; }
+  .lb-hero-label { font-size: 11px; }
+}
+
+.leaderboard {
+  display: flex;
+  flex-direction: column;
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 6px;
+  border: none;
+  border-bottom: 1px solid var(--divider);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-family: inherit;
+  transition: background var(--dur) var(--ease-soft);
+}
+.lb-row:last-child { border-bottom: none; }
+button.lb-row { cursor: pointer; border-radius: 10px; }
+button.lb-row:hover { background: var(--surface-1); }
+button.lb-row:active { background: var(--surface-2); }
+
+/* Posizione: cerchio. Podio oro/argento/bronzo, resto muted. */
+.lb-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: var(--surface-1);
+  border: 1px solid var(--glass-border);
+}
+.lb-rank.is-1 { color: #4a3a08; background: var(--gold); border-color: transparent; }
+.lb-rank.is-2 { color: #2a2f38; background: var(--silver); border-color: transparent; }
+.lb-rank.is-3 { color: #fff2e6; background: var(--bronze); border-color: transparent; }
+
+.lb-main { min-width: 0; }
+.lb-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-sub {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 3px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.lb-sub-sep { opacity: 0.4; }
+
+/* Metrica principale a destra: numero grande + etichetta piccola */
+.lb-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  padding-left: 6px;
+}
+.lb-primary-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.lb-primary-value.is-accent { color: var(--accent-text); }
+.lb-primary-value.is-good { color: var(--success-text); }
+.lb-primary-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.lb-caret {
+  color: var(--subtle);
+  font-size: 0.7rem;
+  margin-left: 2px;
+  transition: transform var(--dur) var(--ease-soft);
+}
+.lb-row.is-open .lb-caret { transform: rotate(90deg); }
+
+/* Dettaglio espandibile: pill compatte, non la griglia pesante di prima */
+.lb-details {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 4px 2px 8px 46px;
+}
+.lb-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: var(--surface-1);
+  border: 1px solid var(--glass-border);
+  font-size: 0.78rem;
+}
+.lb-stat-label { color: var(--muted); }
+.lb-stat-value { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Chip compagno (best/worst) nel dettaglio */
+.lb-mate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid;
+}
+.lb-mate-best { color: var(--success-text); background: rgba(48, 209, 88, 0.12); border-color: rgba(48, 209, 88, 0.35); }
+.lb-mate-worst { color: var(--danger-text); background: rgba(255, 69, 58, 0.12); border-color: rgba(255, 69, 58, 0.35); }
+
+/* Sottotitolo/hint sotto il titolo di una card (guida l'utente) */
+.card-hint {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: -0.4rem;
+  margin-bottom: 1rem;
 }
