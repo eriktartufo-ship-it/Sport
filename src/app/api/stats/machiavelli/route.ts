@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       where,
       orderBy: { date: 'asc' },
       include: {
-        results: { include: { player: true } },
+        results: { include: { player: true }, orderBy: { position: 'asc' } },
       },
     });
 
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       date: m.date,
       results: m.results.map((r) => ({
         playerId: r.playerId,
-        isWinner: r.isWinner,
+        position: r.position,
         player: { name: r.player.name },
       })),
     }));

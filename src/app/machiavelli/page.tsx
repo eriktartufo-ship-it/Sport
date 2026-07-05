@@ -12,8 +12,9 @@ type PlayerRankingMachiavelli = {
   name: string;
   played: number;
   wins: number;
-  losses: number;
   winRate: number;
+  points: number;
+  pointsAvg: number;
   currentStreak: number;
   bestStreak: number;
   lastWinDate: string | null;
@@ -22,7 +23,7 @@ type PlayerRankingMachiavelli = {
 type MatchMachiavelli = {
   id: string;
   date: string;
-  results: { id: string; playerId: string; isWinner: boolean; player: { id: string; name: string } }[];
+  results: { id: string; playerId: string; position: number; player: { id: string; name: string } }[];
 };
 
 type Player = { id: string; name: string; deletedAt?: string | null };
@@ -34,8 +35,6 @@ const formatDate = (iso: string) => {
   const d = new Date(iso);
   return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
-
-const pct = (n: number) => `${Math.round(n * 100)}%`;
 
 export default function DashboardMachiavelli() {
   const [persons, setPersons] = useState<PlayerRankingMachiavelli[]>([]);
@@ -126,17 +125,21 @@ export default function DashboardMachiavelli() {
                     <div className="team3v3-head">
                       <span className="team3v3-pos">#{idx + 1}</span>
                       <span className="team3v3-names">
-                        {idx === 0 && p.wins > 0 && <span aria-hidden="true">👑 </span>}
+                        {idx === 0 && p.played > 0 && <span aria-hidden="true">👑 </span>}
                         {p.name}
                       </span>
                       <span className="team3v3-record">
-                        <strong>{p.wins}</strong>W · {p.losses}L
+                        <strong>{p.pointsAvg.toFixed(2)}</strong> pt/partita
                       </span>
                     </div>
                     <div className="team3v3-stats">
                       <div>
-                        <span className="mc-stat-label">Win%</span>
-                        <span className="mc-stat-value">{pct(p.winRate)}</span>
+                        <span className="mc-stat-label">Punti tot</span>
+                        <span className="mc-stat-value">{p.points}</span>
+                      </div>
+                      <div>
+                        <span className="mc-stat-label">Media pt</span>
+                        <span className="mc-stat-value">{p.pointsAvg.toFixed(2)}</span>
                       </div>
                       <div>
                         <span className="mc-stat-label">Partite</span>
@@ -145,10 +148,6 @@ export default function DashboardMachiavelli() {
                       <div>
                         <span className="mc-stat-label">Vittorie</span>
                         <span className="mc-stat-value">{p.wins}</span>
-                      </div>
-                      <div>
-                        <span className="mc-stat-label">Sconfitte</span>
-                        <span className="mc-stat-value">{p.losses}</span>
                       </div>
                       <div>
                         <span className="mc-stat-label">Serie ora</span>
@@ -176,8 +175,7 @@ export default function DashboardMachiavelli() {
             ) : (
               <div>
                 {matches.map((m) => {
-                  const winner = m.results.find((r) => r.isWinner);
-                  const others = m.results.filter((r) => !r.isWinner);
+                  const ranked = [...m.results].sort((a, b) => a.position - b.position);
                   return (
                     <div key={m.id} className="match-row">
                       <div className="match-row-head">
@@ -189,17 +187,21 @@ export default function DashboardMachiavelli() {
                           </Link>
                         )}
                       </div>
-                      <div className="mk-match-line">
-                        {winner && (
-                          <span className="mk-winner">
-                            <span aria-hidden="true">👑</span> <strong>{winner.player.name}</strong>
+                      <div className="mk-standings">
+                        {ranked.map((r) => (
+                          <span
+                            key={r.id}
+                            className={`mk-standing${r.position === 1 ? ' is-winner' : ''}`}
+                          >
+                            <span className="mk-standing-pos" aria-hidden="true">
+                              {r.position === 1 ? '👑' : `${r.position}°`}
+                            </span>
+                            <span className="mk-standing-name">{r.player.name}</span>
+                            <span className="mk-standing-pts" aria-hidden="true">
+                              {r.position === 1 ? '0' : `+${r.position - 1}`}
+                            </span>
                           </span>
-                        )}
-                        {others.length > 0 && (
-                          <span className="mk-others">
-                            vs {others.map((r) => r.player.name).join(', ')}
-                          </span>
-                        )}
+                        ))}
                       </div>
                     </div>
                   );

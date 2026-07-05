@@ -10,17 +10,19 @@ const todayIso = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
+const ordinal = (pos: number) => `${pos}°`;
+
 /**
- * Nuova partita di Machiavelli (carte): selezioni chi era al tavolo
- * (min 2, tap = toggle) e poi chi ha vinto (tap sulla pill = corona).
- * Chi tiene ancora le carte in mano perde: si registra solo il vincitore.
+ * Nuova partita di Machiavelli (carte): si tocca ogni giocatore NELL'ORDINE in
+ * cui ha finito le carte. Primo tap = 1° (vincitore, 0 punti), poi 2° (+1),
+ * 3° (+2)... l'ultimo rimasto con le carte in mano prende più punti.
+ * In classifica generale vince chi ha meno punti.
  */
 export default function NewMatchMachiavelli() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [order, setOrder] = useState<string[]>([]);
   const [matchDate, setMatchDate] = useState<string>(todayIso());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,27 +49,18 @@ export default function NewMatchMachiavelli() {
       });
   }, [router]);
 
+  // Tap: se non ancora in classifica → aggiungi in coda (posizione successiva).
+  // Se già in classifica → rimuovilo e ricompatta le posizioni.
   const toggle = (pid: string) => {
-    setSelected((prev) => {
-      const next = { ...prev, [pid]: !prev[pid] };
-      if (!next[pid]) {
-        // deselezionato: se era il vincitore, la corona salta
-        setWinnerId((w) => (w === pid ? null : w));
-      }
-      return next;
-    });
+    setOrder((prev) => (prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]));
   };
 
-  const selectedPlayers = players.filter((p) => selected[p.id]);
+  const reset = () => setOrder([]);
 
   const handleSave = async () => {
     setError(null);
-    if (selectedPlayers.length < 2) {
+    if (order.length < 2) {
       setError('Servono almeno 2 giocatori.');
-      return;
-    }
-    if (!winnerId) {
-      setError('Seleziona chi ha vinto.');
       return;
     }
     setSaving(true);
@@ -75,11 +68,7 @@ export default function NewMatchMachiavelli() {
       const res = await fetch('/api/matches/machiavelli', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: matchDate,
-          playerIds: selectedPlayers.map((p) => p.id),
-          winnerId,
-        }),
+        body: JSON.stringify({ date: matchDate, orderedPlayerIds: order }),
       });
       if (res.ok) {
         router.push('/machiavelli?tab=dati');
@@ -113,50 +102,41 @@ export default function NewMatchMachiavelli() {
       </div>
 
       <div className="card match-form-card" style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ marginBottom: '0.5rem' }}>Chi era al tavolo?</h2>
+        <h2 style={{ marginBottom: '0.5rem' }}>Ordine di arrivo</h2>
         <p className="muted" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.85rem' }}>
-          Tap per aggiungere o togliere un giocatore (minimo 2).
+          Tocca i giocatori nell&apos;ordine in cui hanno finito le carte: il primo
+          che chiude vince (0 punti), l&apos;ultimo rimasto con le carte in mano
+          prende più punti. Tocca di nuovo per toglierlo.
         </p>
         <div className="player-picker-grid">
-          {players.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => toggle(p.id)}
-              className={`player-pill ag-press${selected[p.id] ? ' player-pill-selected' : ''}`}
-            >
-              <span className="player-pill-name">{p.name}</span>
-              {selected[p.id] && <span className="player-pill-check">✓</span>}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="card match-form-card" style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ marginBottom: '0.5rem' }}>Chi ha chiuso per primo?</h2>
-        <p className="muted" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.85rem' }}>
-          Chi resta con le carte in mano perde. Tap sul vincitore.
-        </p>
-        {selectedPlayers.length < 2 ? (
-          <p className="muted">Prima seleziona almeno 2 giocatori qui sopra.</p>
-        ) : (
-          <div className="player-picker-grid">
-            {selectedPlayers.map((p) => (
+          {players.map((p) => {
+            const idx = order.indexOf(p.id);
+            const selected = idx >= 0;
+            const pos = idx + 1;
+            const pts = idx; // position - 1
+            return (
               <button
                 key={p.id}
                 type="button"
-                onClick={() => setWinnerId(p.id)}
-                className={`player-pill ag-press${winnerId === p.id ? ' player-pill-winner' : ''}`}
-                aria-pressed={winnerId === p.id}
+                onClick={() => toggle(p.id)}
+                className={`player-pill ag-press mk-order-pill${selected ? ' is-ranked' : ''}${pos === 1 ? ' player-pill-winner' : ''}`}
+                aria-pressed={selected}
               >
-                {winnerId === p.id && (
-                  <span key={p.id} className="ag-check-pop" aria-hidden="true">👑</span>
+                {selected && (
+                  <span className={`mk-pos-badge ag-check-pop${pos === 1 ? ' is-winner' : ''}`} aria-hidden="true">
+                    {pos === 1 ? '👑' : ordinal(pos)}
+                  </span>
                 )}
                 <span className="player-pill-name">{p.name}</span>
+                {selected && (
+                  <span className="mk-pts-badge" aria-hidden="true">
+                    {pts === 0 ? '0 pt' : `+${pts}`}
+                  </span>
+                )}
               </button>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
       {error && (
@@ -173,11 +153,14 @@ export default function NewMatchMachiavelli() {
         >
           Annulla
         </button>
+        <button className="btn btn-pill btn-ghost btn-pair ag-press" type="button" onClick={reset}>
+          Azzera ordine
+        </button>
         <button
           className="btn btn-pill btn-pair ag-press"
           type="button"
           onClick={handleSave}
-          disabled={saving || selectedPlayers.length < 2 || !winnerId}
+          disabled={saving || order.length < 2}
         >
           {saving ? 'Salvataggio...' : 'Salva Partita'}
         </button>

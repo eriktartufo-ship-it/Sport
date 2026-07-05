@@ -1,6 +1,6 @@
 # Sport — Product Specification
 
-> Versione: 5.0 — 2026-07-05 (post pack #39 — nuovo sport Machiavelli, gioco di carte)
+> Versione: 5.1 — 2026-07-05 (pack #40 — Machiavelli ordine+punti, nav glass scuro RGV)
 > Stato: living document, congelare le sezioni "Scope" e "Modello dati" prima di
 > implementare ogni nuova feature.
 
@@ -23,9 +23,11 @@ registrare partite, importare/esportare DB) richiede admin.
 Moduli attivi (dal pack #32, 2026-05-16):
 - **K.O. (Basket)** — gioco a eliminazione, medaglie 🥇🥈🥉
 - **3vs3 (Basket FIBA 3x3)** — squadre da 3, punteggi 0–21, vincitore obbligato a 21
-- **Machiavelli (carte, pack #39 2026-07-05)** — partita libera con 2+ giocatori,
-  chi resta con le carte in mano perde: si registra solo il vincitore (1 per match).
-  Classifica per persona (vittorie, win-rate, serie di vittorie corrente/migliore).
+- **Machiavelli (carte, pack #39–40 2026-07-05)** — partita libera con 2+ giocatori.
+  Si registra l'ORDINE di arrivo: chi finisce le carte per primo vince, chi resta con
+  le carte in mano è ultimo. Punti di partita = posizione − 1 (vincitore 0). Classifica
+  per persona ordinata per MEDIA punti a partita crescente (vince chi ne ha meno; la media
+  compensa chi gioca meno partite), con punti totali, vittorie e serie corrente/migliore.
 
 I `Player` sono condivisi tra i moduli. Gestione player disponibile in ogni modulo
 (`?tab=player`, componente condiviso `PlayerManagementCard`).
@@ -49,8 +51,8 @@ I `Player` sono condivisi tra i moduli. Gestione player disponibile in ogni modu
 - `Match3v3(id, sportId→Sport, date, teamAScore, teamBScore)` 1:N Match3v3Player
   (`teamSide: "A"|"B"`, unique `(matchId, playerId)`).
 - `MatchMachiavelli(id, sportId→Sport, date)` 1:N MatchMachiavelliPlayer
-  (`isWinner: bool`, unique `(matchId, playerId)`; esattamente 1 winner garantito
-  dalla validation Zod `MatchMachiavelliUpsertSchema`).
+  (`position: Int`, 1 = vincitore; unique `(matchId, playerId)`). Punti = position − 1.
+  Body upsert = `{date?, orderedPlayerIds:[..min 2 distinti]}` (l'indice determina la posizione).
 
 ## Regole di scoring K.O
 
@@ -155,7 +157,7 @@ nelle card mobile e nel tooltip mostra i due valori.
 | GET | `/api/stats/h2h?p1=&p2=` | pubblico | confronto diretto: wins/ties/cronologia. 400 missing/uguale, 404 player inesistente |
 | GET | `/api/seasons/machiavelli` | pubblico | array di anni con almeno una partita Machiavelli, desc |
 | GET | `/api/matches/machiavelli?season=YYYY` | pubblico | cronologia Machiavelli, max 50 |
-| POST | `/api/matches/machiavelli` | admin | body: `{date?, playerIds:[..min 2], winnerId}` (winner ∈ playerIds) |
+| POST | `/api/matches/machiavelli` | admin | body: `{date?, orderedPlayerIds:[..min 2 distinti]}` (ordine di arrivo, index+1 = posizione) |
 | GET | `/api/matches/machiavelli/[id]` | pubblico | singola partita con results.player |
 | PATCH | `/api/matches/machiavelli/[id]` | admin | replace partecipanti/vincitore/data |
 | DELETE | `/api/matches/machiavelli/[id]` | admin | cancella partita + cascade results |

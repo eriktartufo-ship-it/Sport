@@ -12,7 +12,7 @@ export async function GET(
     const match = await prisma.matchMachiavelli.findUnique({
       where: { id },
       include: {
-        results: { include: { player: true } },
+        results: { include: { player: true }, orderBy: { position: 'asc' } },
       },
     });
     if (!match) {
@@ -40,7 +40,7 @@ export async function PATCH(
     if (!parsed.ok) {
       return NextResponse.json({ error: parsed.error }, { status: 400 });
     }
-    const { playerIds, winnerId, date } = parsed.data;
+    const { orderedPlayerIds, date } = parsed.data;
 
     let matchDate: Date | undefined;
     if (date !== undefined && date !== null && date !== '') {
@@ -57,11 +57,11 @@ export async function PATCH(
         ...(matchDate ? { date: matchDate } : {}),
         results: {
           deleteMany: {},
-          create: playerIds.map((pid) => ({ playerId: pid, isWinner: pid === winnerId })),
+          create: orderedPlayerIds.map((pid, i) => ({ playerId: pid, position: i + 1 })),
         },
       },
       include: {
-        results: { include: { player: true } },
+        results: { include: { player: true }, orderBy: { position: 'asc' } },
       },
     });
 

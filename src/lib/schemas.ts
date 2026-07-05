@@ -73,23 +73,20 @@ export const Match3v3UpsertSchema = z
  * Body per POST /api/matches/machiavelli e PATCH /api/matches/machiavelli/[id].
  * Regole Machiavelli (gioco di carte):
  *   - almeno 2 giocatori, tutti distinti
- *   - esattamente 1 vincitore, che deve essere tra i partecipanti
+ *   - `orderedPlayerIds` è l'ORDINE di arrivo: primo = vincitore (chi finisce
+ *     le carte per primo), ultimo = chi resta con le carte in mano.
+ *     La posizione (1-based) determina i punti (position - 1).
  */
 export const MatchMachiavelliUpsertSchema = z
   .object({
     date: z.string().optional().nullable(),
-    playerIds: z
+    orderedPlayerIds: z
       .array(z.string().min(1))
       .min(2, 'Una partita di Machiavelli richiede almeno 2 giocatori'),
-    winnerId: z.string().min(1, 'Serve un vincitore'),
   })
-  .refine((d) => new Set(d.playerIds).size === d.playerIds.length, {
+  .refine((d) => new Set(d.orderedPlayerIds).size === d.orderedPlayerIds.length, {
     message: 'Un giocatore non può comparire due volte',
-    path: ['playerIds'],
-  })
-  .refine((d) => d.playerIds.includes(d.winnerId), {
-    message: 'Il vincitore deve essere uno dei partecipanti',
-    path: ['winnerId'],
+    path: ['orderedPlayerIds'],
   });
 
 export type ParseResult<T> =

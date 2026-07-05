@@ -580,13 +580,13 @@ button {
   display: inline-flex;
   gap: 2px;
   padding: 5px;
-  /* Background sfumato brand (blue-400 → violet-400, stesso gradient di
-     .title / .app-header-brand) per coerenza col linguaggio "Home / K.O.".
-     Opacità alta + backdrop blur → resta liquid glass leggibile. */
-  background: linear-gradient(to right, rgba(96, 165, 250, 0.78), rgba(167, 139, 250, 0.78));
+  /* Glass SCURO come la bottom-nav di RGV (.nav-bottom): base dark trasparente
+     così la pill attiva (blu) e l'hover risaltano. Un fondo colorato brand
+     "mangiava" l'hover blu (feedback Erik 2026-07-05). */
+  background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(191, 184, 254, 0.45);
+  border: 1px solid var(--glass-border);
   border-radius: 999px;
   box-shadow:
     inset 0 1px 0 var(--glass-highlight),
@@ -731,9 +731,8 @@ button {
     display: flex;
     width: 100%;
     padding: 6px;
-    /* Mobile: stesso gradient brand del desktop, opacità leggermente
-       più alta per affordance "barra di navigazione" netta. */
-    background: linear-gradient(to right, rgba(96, 165, 250, 0.85), rgba(167, 139, 250, 0.85));
+    /* Mobile: glass scuro come desktop (bottom-nav RGV). */
+    background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     box-shadow:
@@ -2179,7 +2178,7 @@ button {
  * MACHIAVELLI (gioco di carte)
  * ========================================================================== */
 
-/* Pill del vincitore: stato "oro" (famiglia --gold, come le medaglie K.O.) */
+/* Pill del vincitore (1° posto): stato "oro" (famiglia --gold, medaglie K.O.) */
 .player-pill-winner {
   border-color: rgba(251, 191, 36, 0.65);
   background: rgba(251, 191, 36, 0.16);
@@ -2188,20 +2187,88 @@ button {
     0 4px 14px -2px rgba(251, 191, 36, 0.35);
 }
 
-/* Cronologia: riga vincitore + altri partecipanti */
-.mk-match-line {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+/* Pill di un giocatore in classifica di partita (selezionato ma non 1°): blu,
+   come la selezione player standard. */
+.mk-order-pill.is-ranked:not(.player-pill-winner) {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.18);
 }
 
-.mk-winner {
+/* La pill ordinata ospita badge posizione a sinistra e punti a destra. */
+.mk-order-pill.is-ranked {
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+}
+
+.mk-pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.mk-pos-badge.is-winner {
+  background: transparent;
+  font-size: 1.1rem;
+}
+
+.mk-pts-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
   color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.mk-order-pill.player-pill-winner .mk-pts-badge {
+  color: var(--gold);
+}
+
+/* Cronologia: classifica completa della partita (1 chip per giocatore) */
+.mk-standings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.mk-standing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  font-size: 0.85rem;
+}
+.mk-standing.is-winner {
+  background: rgba(251, 191, 36, 0.14);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.mk-standing-pos {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: rgba(248, 250, 252, 0.7);
+}
+.mk-standing.is-winner .mk-standing-pos { color: var(--gold); }
+
+.mk-standing-name {
   font-weight: 600;
 }
 
-.mk-others {
-  color: rgba(248, 250, 252, 0.65);
-  font-size: 0.9rem;
+.mk-standing-pts {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(248, 250, 252, 0.5);
+  font-variant-numeric: tabular-nums;
 }
+.mk-standing.is-winner .mk-standing-pts { color: var(--gold); }

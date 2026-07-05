@@ -10,10 +10,12 @@ const dateToIso = (d: string | Date) => {
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
 };
 
+const ordinal = (pos: number) => `${pos}°`;
+
 type MatchMachiavelliResp = {
   id: string;
   date: string;
-  results: { id: string; playerId: string; isWinner: boolean; player: Player }[];
+  results: { id: string; playerId: string; position: number; player: Player }[];
 };
 
 export default function EditMatchMachiavelli({ params }: { params: Promise<{ id: string }> }) {
@@ -21,8 +23,7 @@ export default function EditMatchMachiavelli({ params }: { params: Promise<{ id:
   const router = useRouter();
 
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
-  const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [order, setOrder] = useState<string[]>([]);
   const [matchDate, setMatchDate] = useState<string>(dateToIso(new Date()));
 
   const [loading, setLoading] = useState(true);
@@ -52,12 +53,8 @@ export default function EditMatchMachiavelli({ params }: { params: Promise<{ id:
         const players: Player[] = await playersRes.json();
         setAllPlayers(players);
         setMatchDate(dateToIso(match.date));
-        const sel: Record<string, boolean> = {};
-        for (const r of match.results) {
-          sel[r.playerId] = true;
-          if (r.isWinner) setWinnerId(r.playerId);
-        }
-        setSelected(sel);
+        // results già ordinati per position asc dall'API
+        setOrder([...match.results].sort((a, b) => a.position - b.position).map((r) => r.playerId));
         setLoading(false);
       } catch (e) {
         console.error(e);
@@ -68,25 +65,13 @@ export default function EditMatchMachiavelli({ params }: { params: Promise<{ id:
   }, [matchId, router]);
 
   const toggle = (pid: string) => {
-    setSelected((prev) => {
-      const next = { ...prev, [pid]: !prev[pid] };
-      if (!next[pid]) {
-        setWinnerId((w) => (w === pid ? null : w));
-      }
-      return next;
-    });
+    setOrder((prev) => (prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]));
   };
-
-  const selectedPlayers = allPlayers.filter((p) => selected[p.id]);
 
   const handleSave = async () => {
     setErrorMsg(null);
-    if (selectedPlayers.length < 2) {
+    if (order.length < 2) {
       setErrorMsg('Servono almeno 2 giocatori.');
-      return;
-    }
-    if (!winnerId) {
-      setErrorMsg('Seleziona chi ha vinto.');
       return;
     }
     setSaving(true);
@@ -94,11 +79,7 @@ export default function EditMatchMachiavelli({ params }: { params: Promise<{ id:
       const res = await fetch(`/api/matches/machiavelli/${matchId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: matchDate,
-          playerIds: selectedPlayers.map((p) => p.id),
-          winnerId,
-        }),
+        body: JSON.stringify({ date: matchDate, orderedPlayerIds: order }),
       });
       if (res.ok) {
         router.push('/machiavelli?tab=dati');
@@ -151,44 +132,39 @@ export default function EditMatchMachiavelli({ params }: { params: Promise<{ id:
       </div>
 
       <div className="card match-form-card" style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ marginBottom: '0.5rem' }}>Chi era al tavolo?</h2>
+        <h2 style={{ marginBottom: '0.5rem' }}>Ordine di arrivo</h2>
+        <p className="muted" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.85rem' }}>
+          Tocca i giocatori nell&apos;ordine in cui hanno finito le carte. Tocca di nuovo per toglierlo.
+        </p>
         <div className="player-picker-grid">
-          {allPlayers.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => toggle(p.id)}
-              className={`player-pill ag-press${selected[p.id] ? ' player-pill-selected' : ''}`}
-            >
-              <span className="player-pill-name">{p.name}</span>
-              {selected[p.id] && <span className="player-pill-check">✓</span>}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="card match-form-card" style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ marginBottom: '0.5rem' }}>Chi ha chiuso per primo?</h2>
-        {selectedPlayers.length < 2 ? (
-          <p className="muted">Prima seleziona almeno 2 giocatori qui sopra.</p>
-        ) : (
-          <div className="player-picker-grid">
-            {selectedPlayers.map((p) => (
+          {allPlayers.map((p) => {
+            const idx = order.indexOf(p.id);
+            const selected = idx >= 0;
+            const pos = idx + 1;
+            const pts = idx;
+            return (
               <button
                 key={p.id}
                 type="button"
-                onClick={() => setWinnerId(p.id)}
-                className={`player-pill ag-press${winnerId === p.id ? ' player-pill-winner' : ''}`}
-                aria-pressed={winnerId === p.id}
+                onClick={() => toggle(p.id)}
+                className={`player-pill ag-press mk-order-pill${selected ? ' is-ranked' : ''}${pos === 1 ? ' player-pill-winner' : ''}`}
+                aria-pressed={selected}
               >
-                {winnerId === p.id && (
-                  <span key={p.id} className="ag-check-pop" aria-hidden="true">👑</span>
+                {selected && (
+                  <span className={`mk-pos-badge${pos === 1 ? ' is-winner' : ''}`} aria-hidden="true">
+                    {pos === 1 ? '👑' : ordinal(pos)}
+                  </span>
                 )}
                 <span className="player-pill-name">{p.name}</span>
+                {selected && (
+                  <span className="mk-pts-badge" aria-hidden="true">
+                    {pts === 0 ? '0 pt' : `+${pts}`}
+                  </span>
+                )}
               </button>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
       {errorMsg && (
@@ -213,7 +189,7 @@ export default function EditMatchMachiavelli({ params }: { params: Promise<{ id:
           className="btn btn-pill btn-pair ag-press"
           type="button"
           onClick={handleSave}
-          disabled={saving || selectedPlayers.length < 2 || !winnerId}
+          disabled={saving || order.length < 2}
         >
           {saving ? 'Salvataggio...' : 'Salva modifiche'}
         </button>

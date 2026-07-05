@@ -78,10 +78,11 @@ model Match3v3Player {
   @@unique([matchId, playerId])
 }
 
-// Machiavelli (gioco di carte): partita libera con 2+ giocatori,
-// vince chi finisce le carte per primo (chi le tiene in mano perde).
-// Nessun punteggio: solo il flag isWinner (esattamente 1 per match,
-// garantito dalla validation Zod).
+// Machiavelli (gioco di carte): partita libera con 2+ giocatori.
+// Si registra l'ORDINE di arrivo: chi finisce le carte per primo vince,
+// chi resta con le carte in mano è ultimo. `position` = 1 per il vincitore,
+// 2 per il secondo, ecc. I punti di partita = position - 1 (il vincitore
+// fa 0 punti); in classifica generale vince chi ha meno punti.
 model MatchMachiavelli {
   id      String                   @id @default(uuid())
   sport   Sport                    @relation(fields: [sportId], references: [id])
@@ -96,7 +97,7 @@ model MatchMachiavelliPlayer {
   matchId  String
   player   Player           @relation(fields: [playerId], references: [id], onDelete: Cascade)
   playerId String
-  isWinner Boolean          @default(false)
+  position Int              @default(1) // 1 = vincitore; punti = position - 1
 
   @@unique([matchId, playerId])
 }
