@@ -1,4 +1,4 @@
-# Build & Deploy: push su `main` → builda immagine Docker → pubblica su GHCR → SSH alla VPS che fa pull+restart.
+# Build & Deploy: push su `master` (branch live) → builda immagine Docker → pubblica su GHCR → SSH alla VPS che fa pull+restart.
 #
 # PREREQUISITI (una tantum, NON gestiti da questo workflow):
 #   - Sulla VPS, in /opt/sport/, deve esistere docker-compose.yml + .env con APP_IMAGE valorizzato.
@@ -10,7 +10,7 @@ name: Build & Deploy
 
 on:
   push:
-    branches: [main, master]
+    branches: [master]   # SOLO master: main è un branch legacy morto (storia disgiunta, fermo al 2026-05-04) e non deve poter deployare versioni antiche
   workflow_dispatch:
 
 env:
