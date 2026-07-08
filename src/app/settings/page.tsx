@@ -104,19 +104,30 @@ export default function SettingsPage() {
           <div className="card settings-card">
             <h2 className="card-title">Esporta in CSV</h2>
             <p className="settings-text">
-              Scarica classifica e cronologia come file CSV (apribili in Excel / Google Sheets / Numbers).
+              Backup leggibile e durevole, un file per sport (apribile in Excel / Google Sheets / Numbers):
+              matchId, data, giocatori e punteggi. Così puoi ricostruire tutto anche se l&apos;app si rompe.
             </p>
-            <div className="settings-row">
-              <a
-                href="/api/export/csv/leaderboard"
-                className="btn btn-pill"
-                style={{ textDecoration: 'none' }}
-              >📊 Classifica</a>
-              <a
-                href="/api/export/csv/matches"
-                className="btn btn-pill"
-                style={{ textDecoration: 'none' }}
-              >📋 Cronologia</a>
+
+            <div className="settings-section">
+              <h3 className="settings-subtitle">Cronologia per sport</h3>
+              <div className="settings-row">
+                <a href="/api/export/csv/matches?sport=ko" className="btn btn-pill" style={{ textDecoration: 'none' }}>📋 K.O.</a>
+                <a href="/api/export/csv/matches?sport=3v3" className="btn btn-pill" style={{ textDecoration: 'none' }}>📋 3v3</a>
+                <a href="/api/export/csv/matches?sport=machiavelli" className="btn btn-pill" style={{ textDecoration: 'none' }}>📋 Machiavelli</a>
+                <a href="/api/export/csv/matches?sport=padel" className="btn btn-pill" style={{ textDecoration: 'none' }}>📋 Padel</a>
+              </div>
+            </div>
+
+            <hr className="settings-divider" />
+
+            <div className="settings-section">
+              <h3 className="settings-subtitle">Classifica per sport</h3>
+              <div className="settings-row">
+                <a href="/api/export/csv/leaderboard?sport=ko" className="btn btn-pill" style={{ textDecoration: 'none' }}>📊 K.O.</a>
+                <a href="/api/export/csv/leaderboard?sport=3v3" className="btn btn-pill" style={{ textDecoration: 'none' }}>📊 3v3</a>
+                <a href="/api/export/csv/leaderboard?sport=machiavelli" className="btn btn-pill" style={{ textDecoration: 'none' }}>📊 Machiavelli</a>
+                <a href="/api/export/csv/leaderboard?sport=padel" className="btn btn-pill" style={{ textDecoration: 'none' }}>📊 Padel</a>
+              </div>
             </div>
           </div>
 
