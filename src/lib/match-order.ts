@@ -84,9 +84,11 @@ export type MatchDay<T> = {
 
 /**
  * Raggruppa le partite per giornata. Le giornate escono dalla più RECENTE alla
- * più vecchia (come la cronologia), ma dentro la giornata le partite sono in
- * ordine di gioco crescente — così "1ª · 2ª" si legge dall'alto in basso e
- * l'ordine è esplicito invece che intuito dalla posizione nella lista.
+ * più vecchia (come la cronologia); dentro la giornata le partite escono in
+ * ordine di GIOCO crescente, che è il contratto del dato — è l'ordine che
+ * determina le serie di vittorie. Chi disegna la lista la rovescia per mostrarla
+ * newest-first come tutto il resto (vedi `MatchDayList`): il verso della vista è
+ * una scelta della vista, l'ordine di gioco no.
  */
 export function groupByDay<T extends ChronoKey>(matches: T[]): MatchDay<T>[] {
   const groups = new Map<string, T[]>();
