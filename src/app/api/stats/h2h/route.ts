@@ -27,7 +27,7 @@ export async function GET(request: Request) {
         playerId: { in: [p1Id, p2Id] },
         match: { sportId: sport.id },
       },
-      include: { player: true, match: { select: { id: true, date: true } } },
+      include: { player: true, match: { select: { id: true, date: true, createdAt: true } } },
     });
 
     const h2h = computeHeadToHead(
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         playerId: r.playerId,
         medal: r.medal as Medal,
         player: { name: r.player.name },
-        match: { date: r.match.date },
+        match: { date: r.match.date, createdAt: r.match.createdAt },
       })),
     );
 

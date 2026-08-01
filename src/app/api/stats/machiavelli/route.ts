@@ -4,6 +4,7 @@ import {
   computePlayerRankingsMachiavelli,
   type MatchMachiavelliLite,
 } from '@/lib/scoring-machiavelli';
+import { matchOrder } from '@/lib/match-order';
 
 export async function GET(request: Request) {
   try {
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
 
     const matches = await prisma.matchMachiavelli.findMany({
       where,
-      orderBy: { date: 'asc' },
+      orderBy: matchOrder('asc'),
       include: {
         results: { include: { player: true }, orderBy: { position: 'asc' } },
       },
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
     const lite: MatchMachiavelliLite[] = matches.map((m) => ({
       id: m.id,
       date: m.date,
+      createdAt: m.createdAt,
       results: m.results.map((r) => ({
         playerId: r.playerId,
         position: r.position,

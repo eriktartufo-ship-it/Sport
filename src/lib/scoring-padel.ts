@@ -9,12 +9,16 @@
  *  - "Squadra" come identità = coppia ORDINATA degli id (chiave canonica), come 3v3.
  */
 
+import { compareChrono } from './match-order';
+
 export type Side = 'A' | 'B';
 export type PadelSet = { a: number; b: number };
 
 export type MatchPadelLite = {
   id: string;
   date: string | Date;
+  /** Spareggio a parità di giornata: senza, lo streak dipende dall'ordine del DB. */
+  createdAt?: string | Date | null;
   sets: PadelSet[];
   results: { playerId: string; teamSide: Side; player?: { name: string } }[];
 };
@@ -190,9 +194,7 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
     matesAgg: Map<string, { name: string; together: number; wins: number }>;
   };
   const buckets = new Map<string, Acc>();
-  const sorted = [...matches].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sorted = [...matches].sort(compareChrono);
 
   const getOrInit = (pid: string, name: string): Acc => {
     let a = buckets.get(pid);

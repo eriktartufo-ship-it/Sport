@@ -6,6 +6,7 @@ import {
   type Match3v3Lite,
   type Side,
 } from '@/lib/scoring-3v3';
+import { matchOrder } from '@/lib/match-order';
 
 export async function GET(request: Request) {
   try {
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
 
     const matches = await prisma.match3v3.findMany({
       where,
-      orderBy: { date: 'asc' },
+      orderBy: matchOrder('asc'),
       include: {
         results: { include: { player: true } },
       },
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
     const lite: Match3v3Lite[] = matches.map((m) => ({
       id: m.id,
       date: m.date,
+      createdAt: m.createdAt,
       teamAScore: m.teamAScore,
       teamBScore: m.teamBScore,
       results: m.results.map((r) => ({

@@ -5,6 +5,7 @@ import { computeTeamRankings, type Match3v3Lite } from '@/lib/scoring-3v3';
 import { computePlayerRankingsMachiavelli, type MatchMachiavelliLite } from '@/lib/scoring-machiavelli';
 import { computePadelTeamRankings, parseSets, type MatchPadelLite } from '@/lib/scoring-padel';
 import { toCsv, UTF8_BOM, type CsvColumn } from '@/lib/csv';
+import { matchOrder } from '@/lib/match-order';
 
 /**
  * GET /api/export/csv/leaderboard?sport=ko|3v3|machiavelli|padel&season=YYYY
@@ -63,7 +64,7 @@ async function buildKo(season: SeasonRange): Promise<string> {
 
   const results = await prisma.matchResult.findMany({
     where: { match: { sportId: sport.id, ...(season ? { date: season } : {}) } },
-    include: { player: true, match: { select: { date: true } } },
+    include: { player: true, match: { select: { date: true, createdAt: true } } },
   });
   const stats = computePlayerStats(
     results.map((r) => ({
@@ -71,7 +72,7 @@ async function buildKo(season: SeasonRange): Promise<string> {
       playerId: r.playerId,
       medal: r.medal as Medal,
       player: { name: r.player.name },
-      match: { date: r.match.date },
+      match: { date: r.match.date, createdAt: r.match.createdAt },
     }))
   );
   const rows = withPos(stats);
@@ -104,12 +105,13 @@ async function build3v3(season: SeasonRange): Promise<string> {
 
   const matches = await prisma.match3v3.findMany({
     where: { sportId: sport.id, ...(season ? { date: season } : {}) },
-    orderBy: { date: 'asc' },
+    orderBy: matchOrder('asc'),
     include: { results: { include: { player: true } } },
   });
   const lite: Match3v3Lite[] = matches.map((m) => ({
     id: m.id,
     date: m.date,
+    createdAt: m.createdAt,
     teamAScore: m.teamAScore,
     teamBScore: m.teamBScore,
     results: m.results.map((r) => ({
@@ -140,12 +142,13 @@ async function buildMachiavelli(season: SeasonRange): Promise<string> {
 
   const matches = await prisma.matchMachiavelli.findMany({
     where: { sportId: sport.id, ...(season ? { date: season } : {}) },
-    orderBy: { date: 'asc' },
+    orderBy: matchOrder('asc'),
     include: { results: { include: { player: true }, orderBy: { position: 'asc' } } },
   });
   const lite: MatchMachiavelliLite[] = matches.map((m) => ({
     id: m.id,
     date: m.date,
+    createdAt: m.createdAt,
     results: m.results.map((r) => ({
       playerId: r.playerId,
       position: r.position,
@@ -174,12 +177,13 @@ async function buildPadel(season: SeasonRange): Promise<string> {
 
   const matches = await prisma.matchPadel.findMany({
     where: { sportId: sport.id, ...(season ? { date: season } : {}) },
-    orderBy: { date: 'asc' },
+    orderBy: matchOrder('asc'),
     include: { results: { include: { player: true } } },
   });
   const lite: MatchPadelLite[] = matches.map((m) => ({
     id: m.id,
     date: m.date,
+    createdAt: m.createdAt,
     sets: parseSets(m.setsJson),
     results: m.results.map((r) => ({
       playerId: r.playerId,

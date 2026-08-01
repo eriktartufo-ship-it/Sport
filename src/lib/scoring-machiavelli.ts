@@ -13,9 +13,13 @@
  *    cui il player ha partecipato, in ordine cronologico.
  */
 
+import { compareChrono } from './match-order';
+
 export type MatchMachiavelliLite = {
   id: string;
   date: string | Date;
+  /** Spareggio a parità di giornata: senza, lo streak dipende dall'ordine del DB. */
+  createdAt?: string | Date | null;
   results: { playerId: string; position: number; player?: { name: string } }[];
 };
 
@@ -34,8 +38,9 @@ export type PlayerRankingMachiavelli = {
 
 /**
  * Classifica per persona sul totale dei match passati.
- * I match vengono ordinati per data ASC internamente (per gli streak):
- * l'ordine dell'array in input non conta.
+ * I match vengono ordinati cronologicamente internamente (per gli streak):
+ * giornata, poi ordine di registrazione dentro la giornata (`compareChrono`).
+ * L'ordine dell'array in input non conta.
  * Ordinamento finale: media punti ASC (meno punti = meglio), poi più partite
  * giocate (ranking più affidabile), poi più vittorie.
  */
@@ -53,9 +58,7 @@ export function computePlayerRankingsMachiavelli(
   };
 
   const buckets = new Map<string, Acc>();
-  const sorted = [...matches].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sorted = [...matches].sort(compareChrono);
 
   for (const m of sorted) {
     for (const r of m.results) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { matchOrder } from '@/lib/match-order';
 import { getAdminSession } from '@/lib/auth';
 import { Match3v3UpsertSchema, parseBody } from '@/lib/schemas';
 
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
 
     const matches = await prisma.match3v3.findMany({
       where,
-      orderBy: { date: 'desc' },
+      orderBy: matchOrder('desc'),
       take: 50,
       include: {
         results: {
@@ -74,6 +75,9 @@ export async function POST(request: Request) {
         teamAScore,
         teamBScore,
         ...(matchDate ? { date: matchDate } : {}),
+        // Ordine di registrazione: unico spareggio a parità di giornata (`date`
+        // è solo il giorno). Vedi `src/lib/match-order.ts`.
+        createdAt: new Date(),
         results: {
           create: [
             ...teamA.map((pid) => ({ playerId: pid, teamSide: 'A' })),

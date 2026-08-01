@@ -2331,7 +2331,8 @@ button {
   gap: 0.4rem;
   padding: 0.3rem 0.6rem;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  /* tinta neutra dai token: un tint bianco fisso sparisce in light */
+  background: var(--surface-1);
   border: 1px solid var(--glass-border);
   font-size: 0.85rem;
 }
@@ -2343,7 +2344,7 @@ button {
 .mk-standing-pos {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: rgba(248, 250, 252, 0.7);
+  color: var(--muted);
 }
 .mk-standing.is-winner .mk-standing-pos { color: var(--gold); }
 
@@ -2354,7 +2355,7 @@ button {
 .mk-standing-pts {
   font-size: 0.72rem;
   font-weight: 700;
-  color: rgba(248, 250, 252, 0.5);
+  color: var(--subtle);
   font-variant-numeric: tabular-nums;
 }
 .mk-standing.is-winner .mk-standing-pts { color: var(--gold); }
@@ -2732,4 +2733,127 @@ button.lb-row:active { background: var(--surface-2); }
   border: 1px solid var(--glass-border);
   border-radius: 14px;
   font-size: 0.9rem;
+}
+
+/* ============================================================
+   Cronologia raggruppata per GIORNATA (pack #47)
+   La data si scrive UNA volta in testa al riquadro invece che su
+   ogni riga: meno rumore, meno spazio, e la giornata si riconosce
+   a colpo d'occhio. Dentro il riquadro le partite sono numerate in
+   ordine di gioco — quel numero è la stessa cosa che determina le
+   serie di vittorie in classifica, quindi va letto, non intuito.
+   ============================================================ */
+
+.day-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.day-group {
+  background: var(--surface-sunk);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.day-group-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--divider);
+}
+
+.day-group-date {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text);
+  /* "sabato 1 agosto" -> "Sabato 1 agosto" */
+  text-transform: capitalize;
+}
+
+.day-group-count {
+  margin-left: auto;
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.day-group-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.day-match {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.7rem 0.9rem;
+}
+
+/* Divisori inset come in classifica (pack #45): non arrivano ai bordi. */
+.day-match + .day-match::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: var(--divider);
+}
+
+.day-match-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 38px; /* altezza dei .icon-btn: la riga non balla con/senza azioni */
+}
+
+.day-match-seq {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-match-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-match-actions {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.day-group-error {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  color: var(--danger-text);
+}
+
+@media (max-width: 600px) {
+  .day-match {
+    padding: 0.65rem 0.75rem;
+  }
+  .day-group-head {
+    padding: 0.5rem 0.75rem;
+  }
 }

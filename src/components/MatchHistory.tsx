@@ -1,6 +1,6 @@
 "use client";
 
-import Link from 'next/link';
+import MatchDayList from './MatchDayList';
 
 type Player = { id: string; name: string };
 type Medal = 'GOLD' | 'SILVER' | 'BRONZE' | 'NONE';
@@ -8,6 +8,8 @@ type MatchResult = { id: string; medal: Medal; playerId: string; player: Player 
 export type Match = {
   id: string;
   date: string;
+  /** Ordine dentro la giornata — vedi `src/lib/match-order.ts`. */
+  createdAt: string | null;
   playerCount: number;
   results: MatchResult[];
 };
@@ -19,25 +21,31 @@ const MEDAL_EMOJI: Record<Medal, string> = {
   NONE: '',
 };
 
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
-
+/**
+ * Cronologia K.O. — il corpo della singola partita (podio + "Anche:").
+ * La testata (giornata, numero della partita, azioni) è di `MatchDayList`,
+ * condivisa con gli altri tre sport.
+ */
 export default function MatchHistory({
   matches,
   isAdmin = false,
+  onReordered,
 }: {
   matches: Match[];
   isAdmin?: boolean;
+  onReordered?: () => void;
 }) {
   if (matches.length === 0) {
-    return <p style={{ color: 'rgba(255,255,255,0.6)' }}>Nessuna partita registrata.</p>;
+    return <p className="muted">Nessuna partita registrata.</p>;
   }
 
   return (
-    <div>
-      {matches.map((m) => {
+    <MatchDayList
+      matches={matches}
+      isAdmin={isAdmin}
+      sport="ko"
+      onReordered={onReordered}
+      render={(m) => {
         const podium = m.results
           .filter((r) => r.medal !== 'NONE')
           .sort((a, b) => {
@@ -45,17 +53,10 @@ export default function MatchHistory({
             return order[a.medal] - order[b.medal];
           });
         const others = m.results.filter((r) => r.medal === 'NONE');
-        return (
-          <div key={m.id} className="match-row">
-            <div className="match-row-head">
-              <span className="match-row-date">{formatDate(m.date)}</span>
-              <span className="match-row-count">{m.playerCount} giocatori</span>
-              {isAdmin && (
-                <Link href={`/ko/match/${m.id}/edit`} className="match-row-edit" title="Modifica partita">
-                  ✏️
-                </Link>
-              )}
-            </div>
+        return {
+          meta: `${m.playerCount} giocatori`,
+          editHref: `/ko/match/${m.id}/edit`,
+          body: (
             <div className="match-row-players">
               <div className="match-row-podium">
                 {podium.map((r) => (
@@ -73,9 +74,9 @@ export default function MatchHistory({
                 </div>
               )}
             </div>
-          </div>
-        );
-      })}
-    </div>
+          ),
+        };
+      }}
+    />
   );
 }

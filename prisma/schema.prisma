@@ -35,11 +35,22 @@ model Sport {
   matchesPadel      MatchPadel[]
 }
 
+// `date` è una GIORNATA (l'utente sceglie solo il giorno: il form ha un input
+// `type="date"` → mezzanotte UTC). Due partite dello stesso giorno hanno quindi
+// una data IDENTICA e l'ordine fra loro non è deducibile da `date`: senza uno
+// spareggio esplicito lo decideva SQLite, e classifica e cronologia potevano
+// leggerlo al contrario (serie di vittorie sbagliata — Machiavelli, 2026-08-01).
+// `createdAt` è quello spareggio: ordine di REGISTRAZIONE della partita.
+// Nullable perché aggiunto su un DB già popolato (ADD COLUMN senza ricostruire
+// la tabella); `scripts/backfill-match-order.mjs` lo riempie all'avvio.
+// Chi crea una partita DEVE valorizzarlo (niente @default: il default non
+// costante non è applicabile da SQLite in ALTER TABLE).
 model Match {
   id          String        @id @default(uuid())
   sport       Sport         @relation(fields: [sportId], references: [id])
   sportId     String
   date        DateTime      @default(now())
+  createdAt   DateTime?
   playerCount Int
   results     MatchResult[]
 }
@@ -65,6 +76,7 @@ model Match3v3 {
   sport      Sport            @relation(fields: [sportId], references: [id])
   sportId    String
   date       DateTime         @default(now())
+  createdAt  DateTime? // spareggio a parità di giornata — vedi commento su `Match`
   teamAScore Int
   teamBScore Int
   results    Match3v3Player[]
@@ -91,6 +103,7 @@ model MatchMachiavelli {
   sport   Sport                    @relation(fields: [sportId], references: [id])
   sportId String
   date    DateTime                 @default(now())
+  createdAt DateTime? // spareggio a parità di giornata — vedi commento su `Match`
   results MatchMachiavelliPlayer[]
 }
 
@@ -115,6 +128,7 @@ model MatchPadel {
   sport    Sport             @relation(fields: [sportId], references: [id])
   sportId  String
   date     DateTime          @default(now())
+  createdAt DateTime?        // spareggio a parità di giornata — vedi commento su `Match`
   setsJson String            // JSON: [[gamesA,gamesB], ...] in ordine di gioco
   results  MatchPadelPlayer[]
 }

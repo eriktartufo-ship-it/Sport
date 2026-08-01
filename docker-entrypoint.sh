@@ -17,5 +17,12 @@ echo "[entrypoint] Sincronizzo schema DB SQLite (prisma db push)..."
 # ancora presenti; solo i valori delle colonne rimosse vengono persi.
 su-exec nextjs:nodejs node /app/node_modules/prisma/build/index.js db push --skip-generate --accept-data-loss
 
+# Riempie `createdAt` (spareggio di ordinamento fra partite della stessa giornata)
+# sulle righe che ancora non ce l'hanno. Idempotente: passa una volta sola per riga,
+# quindi NON tocca mai un ordine sistemato a mano dall'app. Vedi il .sql per il perché.
+echo "[entrypoint] Backfill ordine partite (spareggio a parità di giornata)..."
+su-exec nextjs:nodejs node /app/node_modules/prisma/build/index.js db execute \
+  --file /app/prisma/backfill-match-order.sql --schema /app/prisma/schema.prisma
+
 echo "[entrypoint] Avvio Next.js standalone su porta ${PORT:-3000}..."
 exec su-exec nextjs:nodejs node /app/server.js

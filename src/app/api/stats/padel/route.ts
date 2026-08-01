@@ -7,6 +7,7 @@ import {
   type MatchPadelLite,
   type Side,
 } from '@/lib/scoring-padel';
+import { matchOrder } from '@/lib/match-order';
 
 export async function GET(request: Request) {
   try {
@@ -27,13 +28,14 @@ export async function GET(request: Request) {
 
     const matches = await prisma.matchPadel.findMany({
       where,
-      orderBy: { date: 'asc' },
+      orderBy: matchOrder('asc'),
       include: { results: { include: { player: true } } },
     });
 
     const lite: MatchPadelLite[] = matches.map((m) => ({
       id: m.id,
       date: m.date,
+      createdAt: m.createdAt,
       sets: parseSets(m.setsJson),
       results: m.results.map((r) => ({
         playerId: r.playerId,

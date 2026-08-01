@@ -24,7 +24,9 @@ export async function GET(request: Request) {
 
     const results = await prisma.matchResult.findMany({
       where,
-      include: { player: true, match: { select: { date: true } } },
+      // `createdAt` = spareggio a parità di giornata: senza, la timeline degli
+      // streak dipende dall'ordine in cui il DB restituisce le righe.
+      include: { player: true, match: { select: { date: true, createdAt: true } } },
     });
 
     const stats = computePlayerStats(
@@ -33,7 +35,7 @@ export async function GET(request: Request) {
         playerId: r.playerId,
         medal: r.medal as Medal,
         player: { name: r.player.name },
-        match: { date: r.match.date },
+        match: { date: r.match.date, createdAt: r.match.createdAt },
       })),
     );
 

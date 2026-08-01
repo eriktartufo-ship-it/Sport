@@ -206,7 +206,15 @@ export default function KODashboard() {
         {activeTab === 'dati' && (
           <div className="card">
             <h2 className="card-title">Cronologia Partite</h2>
-            {loading ? <p>Caricamento...</p> : <MatchHistory matches={matches} isAdmin={isAuthenticated} />}
+            {loading ? (
+              <p>Caricamento...</p>
+            ) : (
+              <MatchHistory
+                matches={matches}
+                isAdmin={isAuthenticated}
+                onReordered={() => load(season, showDeletedPlayers)}
+              />
+            )}
           </div>
         )}
 

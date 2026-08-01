@@ -148,6 +148,24 @@ export const MatchPadelUpsertSchema = z
     { message: 'La partita deve avere un vincitore: una squadra deve vincere più set', path: ['sets'] }
   );
 
+/**
+ * Riordino di due partite DENTRO la stessa giornata (cronologia).
+ * `first`/`second` sono l'ordine di gioco VOLUTO: chi ha giocato prima e chi
+ * dopo. Non si passa una direzione ("su"/"giù") ma le due partite coinvolte:
+ * così la richiesta descrive il risultato, non un movimento relativo alla
+ * lista che il client sta guardando (che potrebbe essere già cambiata).
+ */
+export const MatchReorderSchema = z
+  .object({
+    sport: z.enum(['ko', '3v3', 'machiavelli', 'padel']),
+    first: z.string().min(1, 'id partita mancante'),
+    second: z.string().min(1, 'id partita mancante'),
+  })
+  .refine((v) => v.first !== v.second, {
+    message: 'Le due partite devono essere diverse',
+    path: ['second'],
+  });
+
 export type ParseResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string };

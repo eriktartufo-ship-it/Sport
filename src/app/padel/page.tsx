@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import MatchDayList from '@/components/MatchDayList';
 import SeasonSelector from '@/components/SeasonSelector';
 import RegisterFab from '@/components/RegisterFab';
 import PlayerManagementCard from '@/components/PlayerManagementCard';
@@ -49,6 +49,8 @@ type PadelPlayerRanking = {
 type MatchPadel = {
   id: string;
   date: string;
+  /** Ordine dentro la giornata — vedi `src/lib/match-order.ts`. */
+  createdAt: string | null;
   setsJson: string;
   results: { id: string; playerId: string; teamSide: Side; player: { id: string; name: string } }[];
 };
@@ -57,11 +59,6 @@ type Player = { id: string; name: string; deletedAt?: string | null };
 type TabId = 'classifica' | 'persone' | 'dati' | 'regole' | 'player';
 
 const VALID_TABS: TabId[] = ['classifica', 'persone', 'dati', 'regole', 'player'];
-
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
@@ -235,8 +232,12 @@ export default function DashboardPadel() {
             ) : matches.length === 0 ? (
               <p className="muted">Nessuna partita registrata.</p>
             ) : (
-              <div>
-                {matches.map((m) => {
+              <MatchDayList
+                matches={matches}
+                isAdmin={isAuthenticated}
+                sport="padel"
+                onReordered={() => load(season, showDeletedPlayers)}
+                render={(m) => {
                   const teamA = m.results.filter((r) => r.teamSide === 'A');
                   const teamB = m.results.filter((r) => r.teamSide === 'B');
                   const sets = parseSets(m.setsJson);
@@ -244,15 +245,10 @@ export default function DashboardPadel() {
                   let setsB = 0;
                   for (const [a, b] of sets) { if (a > b) setsA++; else setsB++; }
                   const aWon = setsA > setsB;
-                  return (
-                    <div key={m.id} className="match-row">
-                      <div className="match-row-head">
-                        <span className="match-row-date">{formatDate(m.date)}</span>
-                        <span className="match-row-count">{setsA}-{setsB} set</span>
-                        {isAuthenticated && (
-                          <Link href={`/padel/match/${m.id}/edit`} className="match-row-edit" title="Modifica partita">✏️</Link>
-                        )}
-                      </div>
+                  return {
+                    meta: `${setsA}-${setsB} set`,
+                    editHref: `/padel/match/${m.id}/edit`,
+                    body: (
                       <div className="padel-match-body">
                         <div className="padel-teams">
                           <span className={`padel-team${aWon ? ' is-winner' : ''}`}>{teamA.map((r) => r.player.name).join(' + ')}</span>
@@ -265,10 +261,10 @@ export default function DashboardPadel() {
                           ))}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    ),
+                  };
+                }}
+              />
             )}
           </div>
         )}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import MatchDayList from '@/components/MatchDayList';
 import SeasonSelector from '@/components/SeasonSelector';
 import RegisterFab from '@/components/RegisterFab';
 import PlayerManagementCard from '@/components/PlayerManagementCard';
@@ -24,6 +24,8 @@ type PlayerRankingMachiavelli = {
 type MatchMachiavelli = {
   id: string;
   date: string;
+  /** Ordine dentro la giornata — vedi `src/lib/match-order.ts`. */
+  createdAt: string | null;
   results: { id: string; playerId: string; position: number; player: { id: string; name: string } }[];
 };
 
@@ -31,11 +33,6 @@ type Player = { id: string; name: string; deletedAt?: string | null };
 type TabId = 'classifica' | 'dati' | 'player';
 
 const VALID_TABS: TabId[] = ['classifica', 'dati', 'player'];
-
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
-  return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
 
 export default function DashboardMachiavelli() {
   const [persons, setPersons] = useState<PlayerRankingMachiavelli[]>([]);
@@ -156,20 +153,17 @@ export default function DashboardMachiavelli() {
             ) : matches.length === 0 ? (
               <p className="muted">Nessuna partita registrata.</p>
             ) : (
-              <div>
-                {matches.map((m) => {
+              <MatchDayList
+                matches={matches}
+                isAdmin={isAuthenticated}
+                sport="machiavelli"
+                onReordered={() => load(season, showDeletedPlayers)}
+                render={(m) => {
                   const ranked = [...m.results].sort((a, b) => a.position - b.position);
-                  return (
-                    <div key={m.id} className="match-row">
-                      <div className="match-row-head">
-                        <span className="match-row-date">{formatDate(m.date)}</span>
-                        <span className="match-row-count">{m.results.length} giocatori</span>
-                        {isAuthenticated && (
-                          <Link href={`/machiavelli/match/${m.id}/edit`} className="match-row-edit" title="Modifica partita">
-                            ✏️
-                          </Link>
-                        )}
-                      </div>
+                  return {
+                    meta: `${m.results.length} giocatori`,
+                    editHref: `/machiavelli/match/${m.id}/edit`,
+                    body: (
                       <div className="mk-standings">
                         {ranked.map((r) => (
                           <span
@@ -186,10 +180,10 @@ export default function DashboardMachiavelli() {
                           </span>
                         ))}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    ),
+                  };
+                }}
+              />
             )}
           </div>
         )}

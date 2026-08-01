@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { matchOrder } from '@/lib/match-order';
 import { toCsv, UTF8_BOM, type CsvColumn } from '@/lib/csv';
 import { SCORE_BY_MEDAL, type Medal } from '@/lib/scoring';
 
@@ -59,7 +60,7 @@ async function buildKo(season: SeasonRange): Promise<string> {
 
   const matches = await prisma.match.findMany({
     where: { sportId: sport.id, ...(season ? { date: season } : {}) },
-    orderBy: { date: 'desc' },
+    orderBy: matchOrder('desc'),
     include: { results: { include: { player: true } } },
   });
 
@@ -95,7 +96,7 @@ async function build3v3(season: SeasonRange): Promise<string> {
 
   const matches = await prisma.match3v3.findMany({
     where: { sportId: sport.id, ...(season ? { date: season } : {}) },
-    orderBy: { date: 'desc' },
+    orderBy: matchOrder('desc'),
     include: { results: { include: { player: true } } },
   });
 
@@ -131,7 +132,7 @@ async function buildMachiavelli(season: SeasonRange): Promise<string> {
 
   const matches = await prisma.matchMachiavelli.findMany({
     where: { sportId: sport.id, ...(season ? { date: season } : {}) },
-    orderBy: { date: 'desc' },
+    orderBy: matchOrder('desc'),
     include: { results: { include: { player: true } } },
   });
 
@@ -163,7 +164,7 @@ async function buildPadel(season: SeasonRange): Promise<string> {
 
   const matches = await prisma.matchPadel.findMany({
     where: { sportId: sport.id, ...(season ? { date: season } : {}) },
-    orderBy: { date: 'desc' },
+    orderBy: matchOrder('desc'),
     include: { results: { include: { player: true } } },
   });
 

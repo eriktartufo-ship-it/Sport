@@ -15,6 +15,13 @@ export type Side = 'A' | 'B';
 export type Match3v3Lite = {
   id: string;
   date: string | Date;
+  /**
+   * Spareggio a parità di giornata (vedi `match-order.ts`). Oggi il 3v3 non
+   * calcola serie/streak, quindi l'ordine non influenza nessun numero: il campo
+   * c'è perché se un giorno si aggiunge una metrica sequenziale la si ordini con
+   * `compareChrono` invece di reintrodurre il difetto "ordine deciso dal DB".
+   */
+  createdAt?: string | Date | null;
   teamAScore: number;
   teamBScore: number;
   results: { playerId: string; teamSide: Side; player?: { name: string } }[];

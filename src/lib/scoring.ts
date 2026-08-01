@@ -4,6 +4,8 @@
  * a computePlayerStats().
  */
 
+import { compareChrono } from './match-order';
+
 export type Medal = 'GOLD' | 'SILVER' | 'BRONZE' | 'NONE';
 
 export type Trend = 'up' | 'down' | 'stable' | 'unknown';
@@ -13,7 +15,12 @@ export type ScoringResult = {
   playerId: string;
   medal: Medal;
   player: { name: string };
-  match: { date: Date };
+  /**
+   * `createdAt` è lo spareggio a parità di giornata (vedi `match-order.ts`):
+   * senza, l'ordine di due partite dello stesso giorno — e quindi lo streak —
+   * lo decide il DB.
+   */
+  match: { date: Date; createdAt?: Date | null };
 };
 
 export type PlayerStat = {
@@ -94,7 +101,15 @@ export function computeHeadToHead(
 ): HeadToHeadResult | null {
   if (p1Id === p2Id) return null;
 
-  type MatchEntry = { matchId: string; date: Date; p1?: ScoringResult; p2?: ScoringResult };
+  type MatchEntry = {
+    matchId: string;
+    /** Alias di `matchId`: `compareChrono` ordina su `id`. */
+    id: string;
+    date: Date;
+    createdAt?: Date | null;
+    p1?: ScoringResult;
+    p2?: ScoringResult;
+  };
   const byMatch: Record<string, MatchEntry> = {};
   let p1Info: { id: string; name: string } | null = null;
   let p2Info: { id: string; name: string } | null = null;
@@ -105,7 +120,12 @@ export function computeHeadToHead(
     if (r.playerId === p2Id && !p2Info) p2Info = { id: p2Id, name: r.player.name };
 
     if (!byMatch[r.matchId]) {
-      byMatch[r.matchId] = { matchId: r.matchId, date: r.match.date };
+      byMatch[r.matchId] = {
+        matchId: r.matchId,
+        id: r.matchId,
+        date: r.match.date,
+        createdAt: r.match.createdAt,
+      };
     }
     if (r.playerId === p1Id) byMatch[r.matchId].p1 = r;
     else byMatch[r.matchId].p2 = r;
@@ -114,7 +134,8 @@ export function computeHeadToHead(
   if (!p1Info || !p2Info) return null;
 
   const shared = Object.values(byMatch).filter((e) => e.p1 && e.p2);
-  shared.sort((a, b) => b.date.getTime() - a.date.getTime());
+  // Più recenti prima: cronologico invertito, spareggio incluso.
+  shared.sort((a, b) => compareChrono(b, a));
 
   let p1Wins = 0;
   let p2Wins = 0;
@@ -176,7 +197,12 @@ export function computePlayerStats(
   const opts = { ...DEFAULTS, ...options };
 
   const statsMap: Record<string, PlayerStat> = {};
-  const perPlayerTimeline: Record<string, Array<{ date: Date; score: number; medal: Medal }>> = {};
+  // `id`/`createdAt` servono solo a ordinare (compareChrono): la timeline di uno
+  // streak deve essere cronologica anche fra partite della stessa giornata.
+  const perPlayerTimeline: Record<
+    string,
+    Array<{ id: string; date: Date; createdAt?: Date | null; score: number; medal: Medal }>
+  > = {};
   const perPlayerDays: Record<string, Set<string>> = {};
   // Per ogni player, somma punti per settimana ISO
   const perPlayerWeekly: Record<string, Map<string, number>> = {};
@@ -211,7 +237,13 @@ export function computePlayerStats(
     else if (res.medal === 'BRONZE') statsMap[pid].bronze++;
 
     if (!perPlayerTimeline[pid]) perPlayerTimeline[pid] = [];
-    perPlayerTimeline[pid].push({ date: res.match.date, score: matchScore, medal: res.medal });
+    perPlayerTimeline[pid].push({
+      id: res.matchId,
+      date: res.match.date,
+      createdAt: res.match.createdAt,
+      score: matchScore,
+      medal: res.medal,
+    });
 
     if (!perPlayerDays[pid]) perPlayerDays[pid] = new Set();
     perPlayerDays[pid].add(res.match.date.toISOString().slice(0, 10));
@@ -230,7 +262,7 @@ export function computePlayerStats(
     stat.daysPlayed = perPlayerDays[pid]?.size ?? 0;
 
     const timeline = perPlayerTimeline[pid] ?? [];
-    timeline.sort((a, b) => a.date.getTime() - b.date.getTime());
+    timeline.sort(compareChrono);
 
     // currentStreak: GOLD consecutivi a partire dall'ULTIMO match indietro.
     let cur = 0;

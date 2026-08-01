@@ -75,6 +75,13 @@ echo Sincronizzazione schema DB SQLite...
 call npx prisma db push
 if errorlevel 1 goto :error
 
+REM Riempie l'ordine delle partite dentro la giornata (createdAt) sulle righe
+REM che non ce l'hanno: stesso passo che fa docker-entrypoint.sh in produzione.
+REM Idempotente (filtra su createdAt IS NULL): non tocca ordini gia' sistemati.
+echo Backfill ordine partite...
+call npx prisma db execute --file ./prisma/backfill-match-order.sql --schema ./prisma/schema.prisma
+if errorlevel 1 goto :error
+
 echo.
 echo ============================================
 echo  Install completato. Lancia start.bat
