@@ -35,18 +35,16 @@ describe('isValidPadelSet', () => {
     expect(isValidPadelSet(6, 5)).toBe(false);
     expect(isValidPadelSet(6, 6)).toBe(false);
   });
-  it('accetta i vantaggi con scarto esatto 2 (7-5, 8-6, 10-8)', () => {
+  it('accetta 7-5 (dal 5-5) e 7-6 (vantaggi sul 6-6), in entrambi i versi', () => {
     expect(isValidPadelSet(7, 5)).toBe(true);
-    expect(isValidPadelSet(8, 6)).toBe(true);
-    expect(isValidPadelSet(10, 8)).toBe(true);
-  });
-  it('accetta il tie-break 7-6 (in entrambi i versi)', () => {
     expect(isValidPadelSet(7, 6)).toBe(true);
     expect(isValidPadelSet(6, 7)).toBe(true);
   });
-  it('rifiuta scarti > 2 oltre il 6 e un 8-7 (non è un tie-break)', () => {
-    expect(isValidPadelSet(8, 5)).toBe(false);
+  it('rifiuta tutto oltre il 7: i vantaggi valgono un solo game (8-6, 10-8, 8-7)', () => {
+    expect(isValidPadelSet(8, 6)).toBe(false);
+    expect(isValidPadelSet(10, 8)).toBe(false);
     expect(isValidPadelSet(8, 7)).toBe(false);
+    expect(isValidPadelSet(7, 4)).toBe(false);
   });
 });
 

@@ -33,7 +33,7 @@ const EMPTY_SET: DraftSet = { a: null, b: null };
 const parseGame = (raw: string): number | null =>
   raw.trim() === '' ? null : Math.max(0, Math.min(30, Math.floor(Number(raw)) || 0));
 
-/** Stessa regola di isValidPadelSet (server): 6 con ≤4, tie-break 7-6, o vantaggi 7-5/8-6… */
+/** Stessa regola di isValidPadelSet (server): 6-0…6-4, 7-5 o 7-6. Mai oltre il 7. */
 function validSet(s: DraftSet): s is SetScore {
   const { a, b } = s;
   if (a === null || b === null) return false;
@@ -41,8 +41,7 @@ function validSet(s: DraftSet): s is SetScore {
   const w = Math.max(a, b);
   const l = Math.min(a, b);
   if (w === 6 && l <= 4) return true;
-  if (w === 7 && l === 6) return true;
-  if (w >= 7 && w - l === 2) return true;
+  if (w === 7 && (l === 5 || l === 6)) return true;
   return false;
 }
 
@@ -120,7 +119,7 @@ export default function PadelMatchForm({
     }
     const done = sets.filter(validSet);
     if (done.length !== sets.length) {
-      setError('Controlla i set: 6 con 2 di scarto (es. 6-4), tie-break 7-6 o ai vantaggi 7-5/8-6…');
+      setError('Controlla i set: un set finisce 6-0…6-4, 7-5 oppure 7-6.');
       return;
     }
     if (setsA === setsB) {
@@ -232,7 +231,7 @@ export default function PadelMatchForm({
                 <input
                   type="number"
                   min={0}
-                  max={30}
+                  max={7}
                   className="input padel-set-input"
                   inputMode="numeric"
                   value={s.a ?? ''}
@@ -243,7 +242,7 @@ export default function PadelMatchForm({
                 <input
                   type="number"
                   min={0}
-                  max={30}
+                  max={7}
                   className="input padel-set-input"
                   inputMode="numeric"
                   value={s.b ?? ''}

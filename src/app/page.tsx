@@ -42,7 +42,7 @@ export default function Home() {
             <h2 className="sport-card-title">Padel</h2>
           </div>
           <p className="sport-card-desc">
-            2 vs 2 con le regole classiche (boccino d&apos;oro, tie-break o vantaggi sul 6-6). Segna i set e
+            2 vs 2 con le regole classiche (boccino d&apos;oro, vantaggi sul 6-6). Segna i set e
             tieni le classifiche per coppia e per giocatore. Con la scheda regole sempre a portata.
           </p>
         </Link>
