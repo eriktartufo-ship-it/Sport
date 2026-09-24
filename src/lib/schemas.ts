@@ -92,9 +92,11 @@ export const MatchMachiavelliUpsertSchema = z
 /**
  * Un set di padel valido, secondo le regole di casa (oro al game, VANTAGGI al set):
  *  - vince chi arriva a 6 game con almeno 2 di scarto  → 6-0..6-4
- *  - sul 6-6 si va ai vantaggi (niente tie-break) → 7-5, 8-6, 9-7, ... (scarto ESATTO 2)
+ *  - sul 6-6 si va ai vantaggi → 7-5, 8-6, 9-7, ... (scarto ESATTO 2)
+ *  - oppure sul 6-6 si gioca il tie-break → 7-6 (capitato davvero il 2026-09-23)
  * Quindi un set concluso (w, l) con w > l è valido sse:
  *  - w == 6 && l <= 4, oppure
+ *  - w == 7 && l == 6 (tie-break), oppure
  *  - w >= 7 && (w - l) == 2
  */
 export function isValidPadelSet(a: number, b: number): boolean {
@@ -104,6 +106,7 @@ export function isValidPadelSet(a: number, b: number): boolean {
   const w = Math.max(a, b);
   const l = Math.min(a, b);
   if (w === 6 && l <= 4) return true;
+  if (w === 7 && l === 6) return true;
   if (w >= 7 && w - l === 2) return true;
   return false;
 }
@@ -118,7 +121,7 @@ export function isValidPadelSet(a: number, b: number): boolean {
 const PadelSetSchema = z
   .object({ a: z.number().int().min(0).max(30), b: z.number().int().min(0).max(30) })
   .refine((s) => isValidPadelSet(s.a, s.b), {
-    message: 'Set non valido: 6 con 2 di scarto (6-4), oppure ai vantaggi 7-5/8-6…',
+    message: 'Set non valido: 6 con 2 di scarto (6-4), tie-break 7-6, oppure ai vantaggi 7-5/8-6…',
   });
 
 export const MatchPadelUpsertSchema = z

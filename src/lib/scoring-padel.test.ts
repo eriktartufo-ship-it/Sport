@@ -40,9 +40,13 @@ describe('isValidPadelSet', () => {
     expect(isValidPadelSet(8, 6)).toBe(true);
     expect(isValidPadelSet(10, 8)).toBe(true);
   });
-  it('rifiuta 7-6 (niente tie-break) e scarti > 2 oltre il 6', () => {
-    expect(isValidPadelSet(7, 6)).toBe(false);
+  it('accetta il tie-break 7-6 (in entrambi i versi)', () => {
+    expect(isValidPadelSet(7, 6)).toBe(true);
+    expect(isValidPadelSet(6, 7)).toBe(true);
+  });
+  it('rifiuta scarti > 2 oltre il 6 e un 8-7 (non è un tie-break)', () => {
     expect(isValidPadelSet(8, 5)).toBe(false);
+    expect(isValidPadelSet(8, 7)).toBe(false);
   });
 });
 

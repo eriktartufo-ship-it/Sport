@@ -1,7 +1,7 @@
 /**
  * Scheda Regole del Padel — riassunto veloce da consultare in caso di dubbi
  * durante una partita. Regole di casa confermate da Erik: boccino d'oro al
- * game (40-40), vantaggi al set (6-6 → si va a oltranza, niente tie-break).
+ * game (40-40); sul 6-6 del set tie-break (7-6) oppure vantaggi a oltranza.
  */
 export default function PadelRulesCard() {
   return (
@@ -27,11 +27,12 @@ export default function PadelRulesCard() {
       </div>
 
       <div className="padel-rule padel-rule-accent">
-        <h3>🎯 Set → vantaggi (niente tie-break)</h3>
+        <h3>🎯 Set → 6-6: tie-break o vantaggi</h3>
         <p>Vince il set la coppia che arriva prima a <strong>6 game con almeno 2 di scarto</strong>
           (es. 6-4, 6-2). Sul <strong>6-6</strong> si va ai <strong>vantaggi</strong>: si continua a
           giocare finché una coppia non stacca l&apos;altra di <strong>2 game</strong>
-          (7-5, 8-6, 10-8…). Niente tie-break.</p>
+          (7-5, 8-6, 10-8…), oppure si gioca il <strong>tie-break</strong> e il set finisce
+          <strong>7-6</strong>. L&apos;app accetta entrambi.</p>
       </div>
 
       <div className="padel-rule">

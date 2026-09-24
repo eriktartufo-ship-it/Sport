@@ -5,6 +5,8 @@ import { useState } from 'react';
 type Player = { id: string; name: string };
 type Side = 'A' | 'B' | null;
 type SetScore = { a: number; b: number };
+/** In compilazione una cella può essere vuota: null finché non la scrivi. */
+type DraftSet = { a: number | null; b: number | null };
 
 export type PadelSubmitPayload = {
   date: string;
@@ -25,14 +27,21 @@ type Props = {
   deleting?: boolean;
 };
 
-const clampGame = (n: number) => Math.max(0, Math.min(30, Math.floor(n) || 0));
+const EMPTY_SET: DraftSet = { a: null, b: null };
 
-/** Un set concluso è valido: 6 con ≤4, oppure ai vantaggi 7-5/8-6… (scarto 2). */
-function validSet(a: number, b: number): boolean {
+/** '' (cella svuotata) → null; altrimenti game fra 0 e 30. */
+const parseGame = (raw: string): number | null =>
+  raw.trim() === '' ? null : Math.max(0, Math.min(30, Math.floor(Number(raw)) || 0));
+
+/** Stessa regola di isValidPadelSet (server): 6 con ≤4, tie-break 7-6, o vantaggi 7-5/8-6… */
+function validSet(s: DraftSet): s is SetScore {
+  const { a, b } = s;
+  if (a === null || b === null) return false;
   if (a === b) return false;
   const w = Math.max(a, b);
   const l = Math.min(a, b);
   if (w === 6 && l <= 4) return true;
+  if (w === 7 && l === 6) return true;
   if (w >= 7 && w - l === 2) return true;
   return false;
 }
@@ -41,7 +50,7 @@ export default function PadelMatchForm({
   players,
   initialDate,
   initialAssign = {},
-  initialSets = [{ a: 6, b: 4 }],
+  initialSets = [],
   submitLabel,
   onSubmit,
   onDelete,
@@ -49,7 +58,7 @@ export default function PadelMatchForm({
   deleting = false,
 }: Props) {
   const [assign, setAssign] = useState<Record<string, Side>>(initialAssign);
-  const [sets, setSets] = useState<SetScore[]>(initialSets.length ? initialSets : [{ a: 6, b: 4 }]);
+  const [sets, setSets] = useState<DraftSet[]>(initialSets.length ? initialSets : [EMPTY_SET]);
   const [date, setDate] = useState(initialDate);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,10 +91,10 @@ export default function PadelMatchForm({
     });
   };
 
-  const addSet = () => setSets((s) => (s.length >= 5 ? s : [...s, { a: 0, b: 0 }]));
+  const addSet = () => setSets((s) => (s.length >= 5 ? s : [...s, EMPTY_SET]));
   const removeSet = (i: number) => setSets((s) => (s.length <= 1 ? s : s.filter((_, idx) => idx !== i)));
-  const setGame = (i: number, side: 'a' | 'b', value: number) =>
-    setSets((s) => s.map((st, idx) => (idx === i ? { ...st, [side]: clampGame(value) } : st)));
+  const setGame = (i: number, side: 'a' | 'b', raw: string) =>
+    setSets((s) => s.map((st, idx) => (idx === i ? { ...st, [side]: parseGame(raw) } : st)));
 
   const teamAPlayers = players.filter((p) => assign[p.id] === 'A');
   const teamBPlayers = players.filter((p) => assign[p.id] === 'B');
@@ -95,9 +104,11 @@ export default function PadelMatchForm({
   let setsA = 0;
   let setsB = 0;
   for (const s of sets) {
+    if (s.a === null || s.b === null) continue;
     if (s.a > s.b) setsA++;
     else if (s.b > s.a) setsB++;
   }
+  const allValid = sets.every(validSet);
 
   const handleSubmit = async () => {
     setError(null);
@@ -107,8 +118,9 @@ export default function PadelMatchForm({
       setError('Servono esattamente 2 giocatori per squadra.');
       return;
     }
-    if (!sets.every((s) => validSet(s.a, s.b))) {
-      setError('Controlla i set: 6 con 2 di scarto (es. 6-4) o ai vantaggi 7-5/8-6…');
+    const done = sets.filter(validSet);
+    if (done.length !== sets.length) {
+      setError('Controlla i set: 6 con 2 di scarto (es. 6-4), tie-break 7-6 o ai vantaggi 7-5/8-6…');
       return;
     }
     if (setsA === setsB) {
@@ -117,14 +129,14 @@ export default function PadelMatchForm({
     }
     setSaving(true);
     try {
-      await onSubmit({ date, teamA, teamB, sets });
+      await onSubmit({ date, teamA, teamB, sets: done });
     } catch {
       setError('Errore nel salvataggio');
     }
     setSaving(false);
   };
 
-  const canSave = counts.a === 2 && counts.b === 2 && setsA !== setsB && sets.every((s) => validSet(s.a, s.b));
+  const canSave = counts.a === 2 && counts.b === 2 && setsA !== setsB && allValid;
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -212,7 +224,8 @@ export default function PadelMatchForm({
         </p>
         <div className="padel-set-editor">
           {sets.map((s, i) => {
-            const invalid = !validSet(s.a, s.b);
+            // rosso solo quando entrambe le celle sono scritte: una riga appena aggiunta non è un errore
+            const invalid = s.a !== null && s.b !== null && !validSet(s);
             return (
               <div key={i} className={`padel-set-row${invalid ? ' is-invalid' : ''}`}>
                 <span className="padel-set-label">Set {i + 1}</span>
@@ -221,8 +234,9 @@ export default function PadelMatchForm({
                   min={0}
                   max={30}
                   className="input padel-set-input"
-                  value={s.a}
-                  onChange={(e) => setGame(i, 'a', Number(e.target.value))}
+                  inputMode="numeric"
+                  value={s.a ?? ''}
+                  onChange={(e) => setGame(i, 'a', e.target.value)}
                   aria-label={`Game Squadra A set ${i + 1}`}
                 />
                 <span className="padel-set-sep">-</span>
@@ -231,8 +245,9 @@ export default function PadelMatchForm({
                   min={0}
                   max={30}
                   className="input padel-set-input"
-                  value={s.b}
-                  onChange={(e) => setGame(i, 'b', Number(e.target.value))}
+                  inputMode="numeric"
+                  value={s.b ?? ''}
+                  onChange={(e) => setGame(i, 'b', e.target.value)}
                   aria-label={`Game Squadra B set ${i + 1}`}
                 />
                 {sets.length > 1 && (
