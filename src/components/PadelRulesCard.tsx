@@ -1,7 +1,8 @@
 /**
  * Scheda Regole del Padel — riassunto veloce da consultare in caso di dubbi
  * durante una partita. Regole di casa confermate da Erik: boccino d'oro al
- * game (40-40); sul 6-6 del set tie-break (7-6) oppure vantaggi a oltranza.
+ * game (40-40); sul 6-6 vantaggi a punti secchi, una battuta a testa, primo a 7
+ * con 2 di scarto → set 7-6. Il 5-5 si chiude 7-5.
  */
 export default function PadelRulesCard() {
   return (
@@ -27,12 +28,24 @@ export default function PadelRulesCard() {
       </div>
 
       <div className="padel-rule padel-rule-accent">
-        <h3>🎯 Set → 6-6: tie-break o vantaggi</h3>
-        <p>Vince il set la coppia che arriva prima a <strong>6 game con almeno 2 di scarto</strong>
-          (es. 6-4, 6-2). Sul <strong>6-6</strong> si va ai <strong>vantaggi</strong>: si continua a
-          giocare finché una coppia non stacca l&apos;altra di <strong>2 game</strong>
-          (7-5, 8-6, 10-8…), oppure si gioca il <strong>tie-break</strong> e il set finisce
-          <strong>7-6</strong>. L&apos;app accetta entrambi.</p>
+        <h3>🎯 Quando si vince il set</h3>
+        <p>Vince il set la coppia che arriva prima a <strong>6 game con almeno 2 di scarto</strong>:
+          6-0, 6-1, 6-2, 6-3, <strong>6-4</strong>. Sul <strong>5-5</strong> si gioca fino a
+          7: <strong>7-5</strong> chiude il set.</p>
+      </div>
+
+      <div className="padel-rule padel-rule-accent">
+        <h3>🔥 6-6 → vantaggi, una battuta a testa</h3>
+        <p>Sul <strong>6 pari</strong> si va ai <strong>vantaggi a punti secchi</strong>: si
+          batte <strong>una volta a testa</strong>, a turno fra tutti e quattro. Vince chi arriva per primo
+          a <strong>7 punti con almeno 2 di scarto</strong> (7-5, 8-6, 10-8…). Chi vince i vantaggi
+          vince il set <strong>7-6</strong>: nell&apos;app si scrive <strong>7-6</strong>.</p>
+      </div>
+
+      <div className="padel-rule">
+        <h3>✅ Punteggi di un set che l&apos;app accetta</h3>
+        <p><strong>6-0 · 6-1 · 6-2 · 6-3 · 6-4 · 7-5 · 7-6</strong>. Restano validi anche i set
+          giocati ai vantaggi a game (8-6, 9-7…), così le partite già salvate non si perdono.</p>
       </div>
 
       <div className="padel-rule">
