@@ -2387,7 +2387,7 @@ button {
   min-width: 54px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: rgba(248, 250, 252, 0.65);
+  color: var(--muted);
   text-align: right;
 }
 
@@ -2407,7 +2407,21 @@ button {
 
 .padel-set-sep {
   font-weight: 700;
-  color: rgba(248, 250, 252, 0.5);
+  color: var(--muted);
+}
+
+/* Perché il form non si salva ancora: detto sotto i set, non al click di un bottone spento */
+.padel-set-problem {
+  margin: 0.9rem auto 0;
+  max-width: 420px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.padel-set-problem.is-bad {
+  color: var(--danger);
+  font-weight: 600;
 }
 
 .padel-set-remove {

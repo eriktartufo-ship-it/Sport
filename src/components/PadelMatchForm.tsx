@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, type FocusEvent } from 'react';
 
 type Player = { id: string; name: string };
 type Side = 'A' | 'B' | null;
@@ -29,9 +29,16 @@ type Props = {
 
 const EMPTY_SET: DraftSet = { a: null, b: null };
 
-/** '' (cella svuotata) → null; altrimenti game fra 0 e 30. */
+/** Toccando una cella già scritta, la cifra nuova SOSTITUISCE la vecchia (prima "6" + "3" = 63). */
+const selectAll = (e: FocusEvent<HTMLInputElement>) => e.currentTarget.select();
+
+/**
+ * '' (cella svuotata) → null; altrimenti il numero scritto, così com'è.
+ * Niente tetto silenzioso: prima "63" diventava 30 senza dirlo. Un valore fuori
+ * regola resta visibile e il set diventa rosso con la spiegazione.
+ */
 const parseGame = (raw: string): number | null =>
-  raw.trim() === '' ? null : Math.max(0, Math.min(30, Math.floor(Number(raw)) || 0));
+  raw.trim() === '' ? null : Math.max(0, Math.min(99, Math.floor(Number(raw)) || 0));
 
 /** Stessa regola di isValidPadelSet (server): 6-0…6-4, 7-5 o 7-6. Mai oltre il 7. */
 function validSet(s: DraftSet): s is SetScore {
@@ -108,6 +115,29 @@ export default function PadelMatchForm({
     else if (s.b > s.a) setsB++;
   }
   const allValid = sets.every(validSet);
+
+  // Perché non si può ancora salvare, detto SUBITO: il bottone è disabilitato
+  // finché manca qualcosa, quindi un messaggio mostrato solo al click non si
+  // vedrebbe mai (era il difetto: set rosso, bottone spento, nessun perché).
+  const setProblem = (() => {
+    for (let i = 0; i < sets.length; i++) {
+      const s = sets[i];
+      if (s.a !== null && s.b !== null && !validSet(s)) {
+        return {
+          bad: true,
+          text: `Set ${i + 1}: ${s.a}-${s.b} non è un set valido. Un set finisce 6-0…6-4, 7-5 oppure 7-6.`,
+        };
+      }
+    }
+    for (let i = 0; i < sets.length; i++) {
+      const s = sets[i];
+      if (s.a === null || s.b === null) {
+        return { bad: false, text: `Set ${i + 1}: scrivi i game di entrambe le squadre, oppure togli la riga con ✕.` };
+      }
+    }
+    if (setsA === setsB) return { bad: false, text: 'Aggiungi il set decisivo per avere un vincitore.' };
+    return null;
+  })();
 
   const handleSubmit = async () => {
     setError(null);
@@ -217,9 +247,10 @@ export default function PadelMatchForm({
       <div className="card match-form-card" style={{ margin: '1.5rem 0' }}>
         <h2 style={{ marginBottom: '0.5rem' }}>Punteggio (set)</h2>
         <p className="muted" style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.85rem' }}>
-          Game della Squadra A e della Squadra B per ogni set. {setsA !== setsB
-            ? `Vince Squadra ${setsA > setsB ? 'A' : 'B'} (${Math.max(setsA, setsB)}-${Math.min(setsA, setsB)}).`
-            : 'Aggiungi il set decisivo per avere un vincitore.'}
+          Game della Squadra A e della Squadra B per ogni set.
+          {/* il vincitore si annuncia solo quando TUTTI i set sono validi: prima diceva
+              "Vince A (2-1)" anche con il 3° set rosso e il bottone spento */}
+          {!setProblem && ` Vince Squadra ${setsA > setsB ? 'A' : 'B'} (${Math.max(setsA, setsB)}-${Math.min(setsA, setsB)}).`}
         </p>
         <div className="padel-set-editor">
           {sets.map((s, i) => {
@@ -234,6 +265,7 @@ export default function PadelMatchForm({
                   max={7}
                   className="input padel-set-input"
                   inputMode="numeric"
+                  onFocus={selectAll}
                   value={s.a ?? ''}
                   onChange={(e) => setGame(i, 'a', e.target.value)}
                   aria-label={`Game Squadra A set ${i + 1}`}
@@ -245,6 +277,7 @@ export default function PadelMatchForm({
                   max={7}
                   className="input padel-set-input"
                   inputMode="numeric"
+                  onFocus={selectAll}
                   value={s.b ?? ''}
                   onChange={(e) => setGame(i, 'b', e.target.value)}
                   aria-label={`Game Squadra B set ${i + 1}`}
@@ -258,6 +291,11 @@ export default function PadelMatchForm({
             );
           })}
         </div>
+        {setProblem && (
+          <p className={`padel-set-problem${setProblem.bad ? ' is-bad' : ''}`} role="status">
+            {setProblem.text}
+          </p>
+        )}
         {sets.length < 5 && (
           <button type="button" className="btn btn-pill btn-ghost ag-press padel-add-set" onClick={addSet}>
             + Aggiungi set
