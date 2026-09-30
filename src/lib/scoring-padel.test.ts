@@ -6,7 +6,7 @@ import {
   teamKey,
   type MatchPadelLite,
 } from './scoring-padel';
-import { isValidPadelSet } from './schemas';
+import { isValidPadelSet, MatchPadelUpsertSchema } from './schemas';
 
 // helper: partita 2v2 con set espressi come [gamesA, gamesB]
 const mk = (
@@ -141,5 +141,67 @@ describe('computePadelPlayerRankings', () => {
     // a e b: 2 wins; c e d: 0 → a/b davanti
     expect(rows[0].wins).toBe(2);
     expect(rows[rows.length - 1].wins).toBe(0);
+  });
+});
+
+// Partita vera del 2026-09-30: c'era tempo per 4 set, finita 2-2.
+// Erik+Kekko (A) vs Dildo+Luke (B): 6-2 3-6 3-6 6-1.
+describe('pareggio (regola 2026-09-30)', () => {
+  const pari = mk('p30', '2026-09-30', ['erik', 'kekko'], ['dildo', 'luke'], [[6, 2], [3, 6], [3, 6], [6, 1]]);
+
+  it('la partita vera del 30/09 e un pareggio, non una vittoria di A', () => {
+    // controllo positivo: la vecchia regola (setsA >= setsB) dava 1 vittoria a Erik+Kekko
+    const teams = computePadelTeamRankings([pari]);
+    for (const t of teams) {
+      expect(t.played).toBe(1);
+      expect(t.wins).toBe(0);
+      expect(t.draws).toBe(1);
+      expect(t.losses).toBe(0);
+      expect(t.winRate).toBe(0.5);
+      expect(t.setsWon).toBe(2);
+      expect(t.setsLost).toBe(2);
+    }
+    const ek = teams.find((t) => t.teamKey === teamKey(['erik', 'kekko']))!;
+    expect(ek.gamesWon).toBe(18);
+    expect(ek.gamesLost).toBe(15);
+  });
+
+  it('per persona: mezza vittoria nella Win% e la serie si interrompe', () => {
+    const vinta = mk('v29', '2026-09-29', ['erik', 'kekko'], ['dildo', 'luke'], [[6, 0], [6, 0]]);
+    const rows = computePadelPlayerRankings([vinta, pari]);
+    const erik = rows.find((r) => r.id === 'erik')!;
+    expect(erik.played).toBe(2);
+    expect(erik.wins).toBe(1);
+    expect(erik.draws).toBe(1);
+    expect(erik.losses).toBe(0);
+    expect(erik.winRate).toBe(0.75);
+    expect(erik.bestStreak).toBe(1);
+    expect(erik.currentStreak).toBe(0);
+    const luke = rows.find((r) => r.id === 'luke')!;
+    expect(luke.losses).toBe(1);
+    expect(luke.draws).toBe(1);
+    expect(luke.winRate).toBe(0.25);
+  });
+
+  it('a pari vittorie, chi ha pareggiato sta davanti a chi ha perso', () => {
+    const rows = computePadelTeamRankings([
+      mk('m1', '2026-09-01', ['a', 'b'], ['c', 'd'], [[6, 0], [6, 0]]), // a+b vincono
+      mk('m2', '2026-09-02', ['e', 'f'], ['g', 'h'], [[6, 0], [6, 0]]), // e+f vincono
+      mk('m3', '2026-09-03', ['a', 'b'], ['g', 'h'], [[6, 0], [0, 6]]), // a+b pareggiano 1-1
+      mk('m4', '2026-09-04', ['e', 'f'], ['c', 'd'], [[0, 6], [0, 6]]), // e+f perdono
+    ]);
+    const pos = (ids: string[]) => rows.findIndex((r) => r.teamKey === teamKey(ids));
+    // a+b: 1V 1P = 75% · e+f: 1V 1S = 50% → stessa quantita di vittorie, a+b davanti
+    expect(rows[pos(['a', 'b'])].winRate).toBe(0.75);
+    expect(rows[pos(['e', 'f'])].winRate).toBe(0.5);
+    expect(pos(['a', 'b'])).toBeLessThan(pos(['e', 'f']));
+  });
+
+  it('il server accetta il pareggio (2-2 e 1-1)', () => {
+    const body = (sets: { a: number; b: number }[]) => ({ date: '2026-09-30', teamA: ['e', 'k'], teamB: ['d', 'l'], sets });
+    expect(MatchPadelUpsertSchema.safeParse(body([{ a: 6, b: 2 }, { a: 3, b: 6 }, { a: 3, b: 6 }, { a: 6, b: 1 }])).success).toBe(true);
+    expect(MatchPadelUpsertSchema.safeParse(body([{ a: 6, b: 2 }, { a: 3, b: 6 }])).success).toBe(true);
+    // i set fuori regola restano rifiutati
+    expect(MatchPadelUpsertSchema.safeParse(body([{ a: 6, b: 2 }, { a: 10, b: 8 }])).success).toBe(false);
   });
 });

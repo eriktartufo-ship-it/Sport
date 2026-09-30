@@ -4,8 +4,11 @@
  * Modello:
  *  - MatchPadel = 2 squadre (A, B) da 2 giocatori + lista di set [gamesA, gamesB].
  *  - Vincitore della partita = la squadra che ha vinto più SET.
- *  - Un set lo vince chi ha più game in quel set (no pareggio: la validation Zod
- *    garantisce set validi e partita con un vincitore).
+ *  - Un set lo vince chi ha più game in quel set (un set pari non esiste: la
+ *    validation Zod garantisce set validi).
+ *  - A parità di set (1-1, 2-2: si gioca finché c'è tempo) la partita è PAREGGIO
+ *    (regola di Erik, 2026-09-30). Il pareggio vale MEZZA vittoria nella Win%
+ *    e interrompe la serie di vittorie.
  *  - "Squadra" come identità = coppia ORDINATA degli id (chiave canonica), come 3v3.
  */
 
@@ -30,6 +33,8 @@ export type PadelTeamRanking = {
   played: number;
   wins: number;
   losses: number;
+  draws: number;
+  /** (vittorie + pareggi/2) / partite */
   winRate: number;
   setsWon: number;
   setsLost: number;
@@ -52,6 +57,8 @@ export type PadelPlayerRanking = {
   played: number;
   wins: number;
   losses: number;
+  draws: number;
+  /** (vittorie + pareggi/2) / partite */
   winRate: number;
   setsWon: number;
   setsLost: number;
@@ -85,7 +92,12 @@ function getSide(match: MatchPadelLite, side: Side): string[] {
   return match.results.filter((r) => r.teamSide === side).map((r) => r.playerId);
 }
 
-/** Aggregati di una partita: chi ha vinto, set e game per lato. */
+/** Win% con il pareggio a mezza vittoria. */
+function winRateOf(wins: number, draws: number, played: number): number {
+  return played === 0 ? 0 : (wins + draws / 2) / played;
+}
+
+/** Aggregati di una partita: chi ha vinto (null = pareggio), set e game per lato. */
 function tally(match: MatchPadelLite) {
   let setsA = 0;
   let setsB = 0;
@@ -97,7 +109,8 @@ function tally(match: MatchPadelLite) {
     if (s.a > s.b) setsA++;
     else if (s.b > s.a) setsB++;
   }
-  const winner: Side = setsA >= setsB ? 'A' : 'B';
+  // prima era `setsA >= setsB ? 'A' : 'B'`: a parità di set vinceva sempre A
+  const winner: Side | null = setsA > setsB ? 'A' : setsB > setsA ? 'B' : null;
   return { setsA, setsB, gamesA, gamesB, winner };
 }
 
@@ -108,6 +121,7 @@ export function computePadelTeamRankings(matches: MatchPadelLite[]): PadelTeamRa
     playerNames: string[];
     played: number;
     wins: number;
+    draws: number;
     setsWon: number;
     setsLost: number;
     gamesWon: number;
@@ -139,6 +153,7 @@ export function computePadelTeamRankings(matches: MatchPadelLite[]): PadelTeamRa
         playerNames: names,
         played: 0,
         wins: 0,
+        draws: 0,
         setsWon: 0,
         setsLost: 0,
         gamesWon: 0,
@@ -146,6 +161,7 @@ export function computePadelTeamRankings(matches: MatchPadelLite[]): PadelTeamRa
       };
       cur.played++;
       if (won) cur.wins++;
+      else if (t.winner === null) cur.draws++;
       cur.setsWon += setsWon;
       cur.setsLost += setsLost;
       cur.gamesWon += gamesWon;
@@ -161,8 +177,9 @@ export function computePadelTeamRankings(matches: MatchPadelLite[]): PadelTeamRa
     playerNames: a.playerNames,
     played: a.played,
     wins: a.wins,
-    losses: a.played - a.wins,
-    winRate: a.played === 0 ? 0 : a.wins / a.played,
+    losses: a.played - a.wins - a.draws,
+    draws: a.draws,
+    winRate: winRateOf(a.wins, a.draws, a.played),
     setsWon: a.setsWon,
     setsLost: a.setsLost,
     gamesWon: a.gamesWon,
@@ -185,13 +202,14 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
     name: string;
     played: number;
     wins: number;
+    draws: number;
     setsWon: number;
     setsLost: number;
     gamesWon: number;
     gamesLost: number;
     currentStreak: number;
     bestStreak: number;
-    matesAgg: Map<string, { name: string; together: number; wins: number }>;
+    matesAgg: Map<string, { name: string; together: number; wins: number; draws: number }>;
   };
   const buckets = new Map<string, Acc>();
   const sorted = [...matches].sort(compareChrono);
@@ -203,6 +221,7 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
         name,
         played: 0,
         wins: 0,
+        draws: 0,
         setsWon: 0,
         setsLost: 0,
         gamesWon: 0,
@@ -243,6 +262,8 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
           acc.currentStreak++;
           if (acc.currentStreak > acc.bestStreak) acc.bestStreak = acc.currentStreak;
         } else {
+          // anche il pareggio interrompe la serie: la serie conta vittorie di fila
+          if (t.winner === null) acc.draws++;
           acc.currentStreak = 0;
         }
         // compagno di coppia (l'altro dello stesso lato)
@@ -252,9 +273,11 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
             name: other.player?.name ?? '',
             together: 0,
             wins: 0,
+            draws: 0,
           };
           cur.together++;
           if (won) cur.wins++;
+          else if (t.winner === null) cur.draws++;
           if (other.player?.name) cur.name = other.player.name;
           acc.matesAgg.set(other.playerId, cur);
         }
@@ -268,7 +291,7 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
     const MIN_TOGETHER = 2;
     for (const [mateId, mate] of a.matesAgg.entries()) {
       if (mate.together < MIN_TOGETHER) continue;
-      const rate = mate.wins / mate.together;
+      const rate = winRateOf(mate.wins, mate.draws, mate.together);
       const cand: Teammate = {
         playerId: mateId,
         name: mate.name,
@@ -286,8 +309,9 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
       name: a.name,
       played: a.played,
       wins: a.wins,
-      losses: a.played - a.wins,
-      winRate: a.played === 0 ? 0 : a.wins / a.played,
+      losses: a.played - a.wins - a.draws,
+      draws: a.draws,
+      winRate: winRateOf(a.wins, a.draws, a.played),
       setsWon: a.setsWon,
       setsLost: a.setsLost,
       gamesWon: a.gamesWon,

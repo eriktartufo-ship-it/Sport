@@ -197,6 +197,7 @@ async function buildPadel(season: SeasonRange): Promise<string> {
     { label: 'Coppia', value: (r) => r.playerNames.join(' + ') },
     { label: 'Partite', value: (r) => r.played },
     { label: 'Vittorie', value: (r) => r.wins },
+    { label: 'Pareggi', value: (r) => r.draws },
     { label: 'Sconfitte', value: (r) => r.losses },
     { label: 'WinRate %', value: (r) => Math.round(r.winRate * 100) },
     { label: 'Set Vinti', value: (r) => r.setsWon },

@@ -51,8 +51,9 @@ export default function PadelRulesCard() {
 
       <div className="padel-rule">
         <h3>🏆 Partita</h3>
-        <p>Al meglio dei <strong>3 set</strong>: vince chi ne conquista 2. (Potete anche giocare
-          a 1 solo set: l&apos;app accetta da 1 a 5 set per partita.)</p>
+        <p>Si giocano i set che il tempo permette (da 1 a 5): vince chi ne conquista di più.
+          A parità di set (1-1, 2-2) è <strong>pareggio</strong>: in classifica vale mezza
+          vittoria e interrompe la serie di vittorie.</p>
       </div>
 
       <div className="padel-rule">

@@ -18,6 +18,7 @@ type PadelTeamRanking = {
   played: number;
   wins: number;
   losses: number;
+  draws: number;
   winRate: number;
   setsWon: number;
   setsLost: number;
@@ -34,6 +35,7 @@ type PadelPlayerRanking = {
   played: number;
   wins: number;
   losses: number;
+  draws: number;
   winRate: number;
   setsWon: number;
   setsLost: number;
@@ -166,7 +168,7 @@ export default function DashboardPadel() {
                   primaryTone: 'accent',
                   sub: (
                     <>
-                      {t.wins}V-{t.losses}S <span className="lb-sub-sep">·</span> {t.played} partite
+                      {t.wins}V-{t.draws > 0 ? `${t.draws}P-` : ''}{t.losses}S <span className="lb-sub-sep">·</span> {t.played} partite
                     </>
                   ),
                   details: (
@@ -202,7 +204,7 @@ export default function DashboardPadel() {
                   primaryTone: 'accent',
                   sub: (
                     <>
-                      {p.wins}V-{p.losses}S <span className="lb-sub-sep">·</span> {p.played} partite
+                      {p.wins}V-{p.draws > 0 ? `${p.draws}P-` : ''}{p.losses}S <span className="lb-sub-sep">·</span> {p.played} partite
                     </>
                   ),
                   details: (
@@ -243,17 +245,19 @@ export default function DashboardPadel() {
                   const sets = parseSets(m.setsJson);
                   let setsA = 0;
                   let setsB = 0;
-                  for (const [a, b] of sets) { if (a > b) setsA++; else setsB++; }
+                  for (const [a, b] of sets) { if (a > b) setsA++; else if (b > a) setsB++; }
+                  // a parità di set è pareggio: nessuna delle due in oro
                   const aWon = setsA > setsB;
+                  const bWon = setsB > setsA;
                   return {
-                    meta: `${setsA}-${setsB} set`,
+                    meta: `${setsA}-${setsB} set${aWon || bWon ? '' : ' · pareggio'}`,
                     editHref: `/padel/match/${m.id}/edit`,
                     body: (
                       <div className="padel-match-body">
                         <div className="padel-teams">
                           <span className={`padel-team${aWon ? ' is-winner' : ''}`}>{teamA.map((r) => r.player.name).join(' + ')}</span>
                           <span className="padel-vs">vs</span>
-                          <span className={`padel-team${!aWon ? ' is-winner' : ''}`}>{teamB.map((r) => r.player.name).join(' + ')}</span>
+                          <span className={`padel-team${bWon ? ' is-winner' : ''}`}>{teamB.map((r) => r.player.name).join(' + ')}</span>
                         </div>
                         <div className="padel-sets">
                           {sets.map(([a, b], i) => (

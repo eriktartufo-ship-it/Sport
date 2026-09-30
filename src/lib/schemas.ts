@@ -113,7 +113,8 @@ export function isValidPadelSet(a: number, b: number): boolean {
  * Regole Padel:
  *   - 2 giocatori per squadra (teamA + teamB), 4 tutti distinti
  *   - da 1 a 5 set, ognuno un punteggio valido (isValidPadelSet)
- *   - la partita deve avere un vincitore: una squadra vince più set dell'altra
+ *   - il PAREGGIO è ammesso (stessi set vinti, es. 2-2 quando c'è tempo per un 4° set):
+ *     regola di Erik del 2026-09-30, prima la partita doveva avere un vincitore
  */
 const PadelSetSchema = z
   .object({ a: z.number().int().min(0).max(30), b: z.number().int().min(0).max(30) })
@@ -134,18 +135,6 @@ export const MatchPadelUpsertSchema = z
       return new Set(all).size === all.length;
     },
     { message: 'Un giocatore non può essere in entrambe le squadre', path: ['teamB'] }
-  )
-  .refine(
-    (d) => {
-      let a = 0;
-      let b = 0;
-      for (const s of d.sets) {
-        if (s.a > s.b) a++;
-        else b++;
-      }
-      return a !== b;
-    },
-    { message: 'La partita deve avere un vincitore: una squadra deve vincere più set', path: ['sets'] }
   );
 
 /**

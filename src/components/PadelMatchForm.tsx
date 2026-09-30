@@ -106,7 +106,7 @@ export default function PadelMatchForm({
   const teamBPlayers = players.filter((p) => assign[p.id] === 'B');
   const unassigned = players.filter((p) => !assign[p.id]);
 
-  // vincitore live
+  // esito live (a parità di set è pareggio: si gioca finché c'è tempo)
   let setsA = 0;
   let setsB = 0;
   for (const s of sets) {
@@ -135,7 +135,6 @@ export default function PadelMatchForm({
         return { bad: false, text: `Set ${i + 1}: scrivi i game di entrambe le squadre, oppure togli la riga con ✕.` };
       }
     }
-    if (setsA === setsB) return { bad: false, text: 'Aggiungi il set decisivo per avere un vincitore.' };
     return null;
   })();
 
@@ -152,10 +151,6 @@ export default function PadelMatchForm({
       setError('Controlla i set: un set finisce 6-0…6-4, 7-5 oppure 7-6.');
       return;
     }
-    if (setsA === setsB) {
-      setError('La partita deve avere un vincitore: una squadra deve vincere più set.');
-      return;
-    }
     setSaving(true);
     try {
       await onSubmit({ date, teamA, teamB, sets: done });
@@ -165,7 +160,7 @@ export default function PadelMatchForm({
     setSaving(false);
   };
 
-  const canSave = counts.a === 2 && counts.b === 2 && setsA !== setsB && allValid;
+  const canSave = counts.a === 2 && counts.b === 2 && allValid;
 
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -250,7 +245,10 @@ export default function PadelMatchForm({
           Game della Squadra A e della Squadra B per ogni set.
           {/* il vincitore si annuncia solo quando TUTTI i set sono validi: prima diceva
               "Vince A (2-1)" anche con il 3° set rosso e il bottone spento */}
-          {!setProblem && ` Vince Squadra ${setsA > setsB ? 'A' : 'B'} (${Math.max(setsA, setsB)}-${Math.min(setsA, setsB)}).`}
+          {!setProblem &&
+            (setsA === setsB
+              ? ` Pareggio (${setsA}-${setsB}).`
+              : ` Vince Squadra ${setsA > setsB ? 'A' : 'B'} (${Math.max(setsA, setsB)}-${Math.min(setsA, setsB)}).`)}
         </p>
         <div className="padel-set-editor">
           {sets.map((s, i) => {
