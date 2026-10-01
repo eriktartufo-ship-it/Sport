@@ -16,8 +16,8 @@ export type LeaderboardRow = {
   primaryValue: string;
   /** Etichetta piccola sotto il valore. */
   primaryLabel: string;
-  /** Tinta del valore: 'accent' | 'good' | undefined. */
-  primaryTone?: 'accent' | 'good';
+  /** Tinta del valore: 'accent' | 'good' | 'bad' (negativo) | undefined. */
+  primaryTone?: 'accent' | 'good' | 'bad';
   /** Dettaglio espandibile al tap (pill/chips). Se assente la riga non è cliccabile. */
   details?: ReactNode;
 };

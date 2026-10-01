@@ -7,10 +7,19 @@
  *  - Un set lo vince chi ha più game in quel set (un set pari non esiste: la
  *    validation Zod garantisce set validi).
  *  - A parità di set (1-1, 2-2: si gioca finché c'è tempo) la partita è PAREGGIO
- *    (regola di Erik, 2026-09-30). Il pareggio vale MEZZA vittoria nella Win%
- *    e interrompe la serie di vittorie.
+ *    (regola di Erik, 2026-09-30). Il pareggio interrompe la serie di vittorie.
  *  - "Squadra" come identità = coppia ORDINATA degli id (chiave canonica), come 3v3.
+ *
+ * Classifiche (regola di Erik, 2026-10-01 — sostituisce la Win%):
+ *  - COPPIE: punti come nel calcio, vittoria 3 · pareggio 1 · sconfitta 0.
+ *    A pari punti decide la differenza set (vinti − persi), poi i set vinti.
+ *  - PERSONE: differenza set, indipendentemente dal compagno; poi i set vinti.
+ *  - ATTACCANTI = più set vinti · DIFENSORI = meno set persi (per coppia e per persona).
  */
+
+export const POINTS_WIN = 3;
+export const POINTS_DRAW = 1;
+export const POINTS_LOSS = 0;
 
 import { compareChrono } from './match-order';
 
@@ -34,10 +43,11 @@ export type PadelTeamRanking = {
   wins: number;
   losses: number;
   draws: number;
-  /** (vittorie + pareggi/2) / partite */
-  winRate: number;
+  /** vittorie×3 + pareggi×1 */
+  points: number;
   setsWon: number;
   setsLost: number;
+  setDiff: number; // setsWon - setsLost
   gamesWon: number;
   gamesLost: number;
   gameDiff: number; // gamesWon - gamesLost
@@ -58,10 +68,9 @@ export type PadelPlayerRanking = {
   wins: number;
   losses: number;
   draws: number;
-  /** (vittorie + pareggi/2) / partite */
-  winRate: number;
   setsWon: number;
   setsLost: number;
+  setDiff: number; // setsWon - setsLost
   gamesWon: number;
   gamesLost: number;
   gameDiff: number;
@@ -92,7 +101,7 @@ function getSide(match: MatchPadelLite, side: Side): string[] {
   return match.results.filter((r) => r.teamSide === side).map((r) => r.playerId);
 }
 
-/** Win% con il pareggio a mezza vittoria. */
+/** Win% con il pareggio a mezza vittoria (resta solo per il compagno migliore/peggiore). */
 function winRateOf(wins: number, draws: number, played: number): number {
   return played === 0 ? 0 : (wins + draws / 2) / played;
 }
@@ -171,25 +180,31 @@ export function computePadelTeamRankings(matches: MatchPadelLite[]): PadelTeamRa
     }
   }
 
-  const rows: PadelTeamRanking[] = Array.from(buckets.entries()).map(([key, a]) => ({
-    teamKey: key,
-    playerIds: a.playerIds,
-    playerNames: a.playerNames,
-    played: a.played,
-    wins: a.wins,
-    losses: a.played - a.wins - a.draws,
-    draws: a.draws,
-    winRate: winRateOf(a.wins, a.draws, a.played),
-    setsWon: a.setsWon,
-    setsLost: a.setsLost,
-    gamesWon: a.gamesWon,
-    gamesLost: a.gamesLost,
-    gameDiff: a.gamesWon - a.gamesLost,
-  }));
+  const rows: PadelTeamRanking[] = Array.from(buckets.entries()).map(([key, a]) => {
+    const losses = a.played - a.wins - a.draws;
+    return {
+      teamKey: key,
+      playerIds: a.playerIds,
+      playerNames: a.playerNames,
+      played: a.played,
+      wins: a.wins,
+      losses,
+      draws: a.draws,
+      points: a.wins * POINTS_WIN + a.draws * POINTS_DRAW + losses * POINTS_LOSS,
+      setsWon: a.setsWon,
+      setsLost: a.setsLost,
+      setDiff: a.setsWon - a.setsLost,
+      gamesWon: a.gamesWon,
+      gamesLost: a.gamesLost,
+      gameDiff: a.gamesWon - a.gamesLost,
+    };
+  });
 
+  // punti → differenza set → set vinti → differenza game
   rows.sort((x, y) => {
-    if (y.wins !== x.wins) return y.wins - x.wins;
-    if (y.winRate !== x.winRate) return y.winRate - x.winRate;
+    if (y.points !== x.points) return y.points - x.points;
+    if (y.setDiff !== x.setDiff) return y.setDiff - x.setDiff;
+    if (y.setsWon !== x.setsWon) return y.setsWon - x.setsWon;
     if (y.gameDiff !== x.gameDiff) return y.gameDiff - x.gameDiff;
     return y.played - x.played;
   });
@@ -311,9 +326,9 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
       wins: a.wins,
       losses: a.played - a.wins - a.draws,
       draws: a.draws,
-      winRate: winRateOf(a.wins, a.draws, a.played),
       setsWon: a.setsWon,
       setsLost: a.setsLost,
+      setDiff: a.setsWon - a.setsLost,
       gamesWon: a.gamesWon,
       gamesLost: a.gamesLost,
       gameDiff: a.gamesWon - a.gamesLost,
@@ -324,11 +339,39 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
     };
   });
 
+  // differenza set → set vinti → differenza game
   rows.sort((x, y) => {
-    if (y.wins !== x.wins) return y.wins - x.wins;
-    if (y.winRate !== x.winRate) return y.winRate - x.winRate;
+    if (y.setDiff !== x.setDiff) return y.setDiff - x.setDiff;
+    if (y.setsWon !== x.setsWon) return y.setsWon - x.setsWon;
     if (y.gameDiff !== x.gameDiff) return y.gameDiff - x.gameDiff;
     return y.played - x.played;
   });
   return rows;
+}
+
+type SetLine = { setsWon: number; setsLost: number; played: number };
+
+/**
+ * Migliori ATTACCANTI: più set vinti. A parità, chi li ha vinti in meno partite
+ * (più prolifico), poi chi ne ha persi meno.
+ */
+export function rankAttack<T extends SetLine>(rows: readonly T[]): T[] {
+  return [...rows].sort((x, y) => {
+    if (y.setsWon !== x.setsWon) return y.setsWon - x.setsWon;
+    if (x.played !== y.played) return x.played - y.played;
+    return x.setsLost - y.setsLost;
+  });
+}
+
+/**
+ * Migliori DIFENSORI: meno set persi. A parità, chi li ha persi in più partite
+ * (ha tenuto più a lungo), poi chi ne ha vinti di più.
+ * ⚠️ È un totale, non una media: chi ha giocato poco parte avvantaggiato.
+ */
+export function rankDefense<T extends SetLine>(rows: readonly T[]): T[] {
+  return [...rows].sort((x, y) => {
+    if (x.setsLost !== y.setsLost) return x.setsLost - y.setsLost;
+    if (y.played !== x.played) return y.played - x.played;
+    return y.setsWon - x.setsWon;
+  });
 }

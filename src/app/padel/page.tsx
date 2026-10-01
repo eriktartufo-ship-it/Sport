@@ -8,6 +8,7 @@ import RegisterFab from '@/components/RegisterFab';
 import PlayerManagementCard from '@/components/PlayerManagementCard';
 import PadelRulesCard from '@/components/PadelRulesCard';
 import Leaderboard, { LbStat } from '@/components/Leaderboard';
+import { rankAttack, rankDefense } from '@/lib/scoring-padel';
 
 type Side = 'A' | 'B';
 
@@ -19,9 +20,10 @@ type PadelTeamRanking = {
   wins: number;
   losses: number;
   draws: number;
-  winRate: number;
+  points: number;
   setsWon: number;
   setsLost: number;
+  setDiff: number;
   gamesWon: number;
   gamesLost: number;
   gameDiff: number;
@@ -36,9 +38,9 @@ type PadelPlayerRanking = {
   wins: number;
   losses: number;
   draws: number;
-  winRate: number;
   setsWon: number;
   setsLost: number;
+  setDiff: number;
   gamesWon: number;
   gamesLost: number;
   gameDiff: number;
@@ -64,6 +66,52 @@ const VALID_TABS: TabId[] = ['classifica', 'persone', 'dati', 'regole', 'player'
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+const diffTone = (n: number) => (n > 0 ? 'good' : n < 0 ? 'bad' : undefined);
+const diffClass = (n: number) => `lb-sub-diff${n > 0 ? ' is-good' : n < 0 ? ' is-bad' : ''}`;
+const record = (r: { wins: number; draws: number; losses: number }) =>
+  `${r.wins}V-${r.draws > 0 ? `${r.draws}P-` : ''}${r.losses}S`;
+const matchesLabel = (n: number) => (n === 1 ? '1 partita' : `${n} partite`);
+
+/** Quante righe mostrano le classifiche attaccanti/difensori. */
+const TOP_AD = 5;
+
+type SetRow = { id: string; name: string; setsWon: number; setsLost: number; played: number };
+
+/** Le due classifiche sotto quella principale: attaccanti (più set vinti) e difensori (meno set persi). */
+function AttackDefense({ rows }: { rows: SetRow[] }) {
+  return (
+    <div className="padel-ad-grid">
+      <div className="card">
+        <h2 className="card-title">⚔️ Migliori attaccanti</h2>
+        <p className="card-hint">Chi ha vinto più set.</p>
+        <Leaderboard
+          rows={rankAttack(rows).slice(0, TOP_AD).map((r) => ({
+            id: r.id,
+            name: r.name,
+            primaryValue: String(r.setsWon),
+            primaryLabel: 'Set vinti',
+            primaryTone: 'good',
+            sub: <>in {matchesLabel(r.played)}</>,
+          }))}
+        />
+      </div>
+      <div className="card">
+        <h2 className="card-title">🛡️ Migliori difensori</h2>
+        <p className="card-hint">Chi ha perso meno set.</p>
+        <Leaderboard
+          rows={rankDefense(rows).slice(0, TOP_AD).map((r) => ({
+            id: r.id,
+            name: r.name,
+            primaryValue: String(r.setsLost),
+            primaryLabel: 'Set persi',
+            primaryTone: 'accent',
+            sub: <>in {matchesLabel(r.played)}</>,
+          }))}
+        />
+      </div>
+    </div>
+  );
+}
 
 const parseSets = (json: string): [number, number][] => {
   try {
@@ -150,80 +198,117 @@ export default function DashboardPadel() {
 
       <div className="dashboard-content">
         {activeTab === 'classifica' && (
-          <div className="card">
-            <h2 className="card-title">Classifica Coppie</h2>
-            <p className="card-hint">Combinazione esatta di 2 giocatori. Tocca una riga per set e game.</p>
-            {loading ? (
-              <p>Caricamento...</p>
-            ) : teams.length === 0 ? (
-              <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
-            ) : (
-              <Leaderboard
-                rows={teams.map((t, idx) => ({
+          <>
+            <div className="card">
+              <h2 className="card-title">Classifica Coppie</h2>
+              <p className="card-hint">
+                Vittoria 3 punti, pareggio 1, sconfitta 0. A pari punti conta la differenza set.
+                Tocca una riga per i game.
+              </p>
+              {loading ? (
+                <p>Caricamento...</p>
+              ) : teams.length === 0 ? (
+                <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
+              ) : (
+                <Leaderboard
+                  rows={teams.map((t, idx) => ({
+                    id: t.teamKey,
+                    name: t.playerNames.join(' + '),
+                    crown: idx === 0 && t.points > 0,
+                    primaryValue: String(t.points),
+                    primaryLabel: 'Punti',
+                    primaryTone: 'accent',
+                    sub: (
+                      <>
+                        <span>{record(t)}</span>
+                        <span className="lb-sub-sep">·</span>
+                        <span>
+                          set {t.setsWon}-{t.setsLost} <span className={diffClass(t.setDiff)}>({signed(t.setDiff)})</span>
+                        </span>
+                      </>
+                    ),
+                    details: (
+                      <>
+                        <LbStat label="Partite" value={t.played} />
+                        <LbStat label="Game" value={`${t.gamesWon}-${t.gamesLost}`} />
+                        <LbStat label="+/- game" value={signed(t.gameDiff)} />
+                      </>
+                    ),
+                  }))}
+                />
+              )}
+            </div>
+            {!loading && teams.length > 0 && (
+              <AttackDefense
+                rows={teams.map((t) => ({
                   id: t.teamKey,
                   name: t.playerNames.join(' + '),
-                  crown: idx === 0 && t.wins > 0,
-                  primaryValue: pct(t.winRate),
-                  primaryLabel: 'Win',
-                  primaryTone: 'accent',
-                  sub: (
-                    <>
-                      {t.wins}V-{t.draws > 0 ? `${t.draws}P-` : ''}{t.losses}S <span className="lb-sub-sep">·</span> {t.played} partite
-                    </>
-                  ),
-                  details: (
-                    <>
-                      <LbStat label="Set" value={`${t.setsWon}-${t.setsLost}`} />
-                      <LbStat label="Game" value={`${t.gamesWon}-${t.gamesLost}`} />
-                      <LbStat label="+/- game" value={signed(t.gameDiff)} />
-                    </>
-                  ),
+                  setsWon: t.setsWon,
+                  setsLost: t.setsLost,
+                  played: t.played,
                 }))}
               />
             )}
-          </div>
+          </>
         )}
 
         {activeTab === 'persone' && (
-          <div className="card">
-            <h2 className="card-title">Classifica Persone</h2>
-            <p className="card-hint">Tocca una riga per set, game e compagni migliori/peggiori.</p>
-            {loading ? (
-              <p>Caricamento...</p>
-            ) : persons.length === 0 ? (
-              <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
-            ) : (
-              <Leaderboard
-                rows={persons.map((p, idx) => ({
+          <>
+            <div className="card">
+              <h2 className="card-title">Classifica Persone</h2>
+              <p className="card-hint">
+                Set vinti meno set persi, con qualunque compagno. Tocca una riga per game e compagni.
+              </p>
+              {loading ? (
+                <p>Caricamento...</p>
+              ) : persons.length === 0 ? (
+                <p>Nessuna partita {season !== 'all' ? `nella stagione ${season}` : 'registrata'}.</p>
+              ) : (
+                <Leaderboard
+                  rows={persons.map((p, idx) => ({
+                    id: p.id,
+                    name: p.name,
+                    crown: idx === 0 && p.setDiff > 0,
+                    badges: p.currentStreak > 1 ? <span className="streak-badge">🔥{p.currentStreak}</span> : undefined,
+                    primaryValue: signed(p.setDiff),
+                    primaryLabel: 'Diff set',
+                    primaryTone: diffTone(p.setDiff),
+                    sub: (
+                      <>
+                        <span>{p.setsWon} vinti · {p.setsLost} persi</span>
+                        <span className="lb-sub-sep">·</span>
+                        <span>{matchesLabel(p.played)}</span>
+                      </>
+                    ),
+                    details: (
+                      <>
+                        <LbStat label="Risultati" value={record(p)} />
+                        <LbStat label="Game" value={`${p.gamesWon}-${p.gamesLost}`} />
+                        <LbStat label="Serie migliore" value={p.bestStreak} />
+                        {p.bestTeammate && (
+                          <span className="lb-mate lb-mate-best">🤝 {p.bestTeammate.name} {pct(p.bestTeammate.winRateTogether)}</span>
+                        )}
+                        {p.worstTeammate && (
+                          <span className="lb-mate lb-mate-worst">💔 {p.worstTeammate.name} {pct(p.worstTeammate.winRateTogether)}</span>
+                        )}
+                      </>
+                    ),
+                  }))}
+                />
+              )}
+            </div>
+            {!loading && persons.length > 0 && (
+              <AttackDefense
+                rows={persons.map((p) => ({
                   id: p.id,
                   name: p.name,
-                  crown: idx === 0 && p.wins > 0,
-                  badges: p.currentStreak > 1 ? <span className="streak-badge">🔥{p.currentStreak}</span> : undefined,
-                  primaryValue: pct(p.winRate),
-                  primaryLabel: 'Win',
-                  primaryTone: 'accent',
-                  sub: (
-                    <>
-                      {p.wins}V-{p.draws > 0 ? `${p.draws}P-` : ''}{p.losses}S <span className="lb-sub-sep">·</span> {p.played} partite
-                    </>
-                  ),
-                  details: (
-                    <>
-                      <LbStat label="Set" value={`${p.setsWon}-${p.setsLost}`} />
-                      <LbStat label="Game" value={`${p.gamesWon}-${p.gamesLost}`} />
-                      <LbStat label="Serie migliore" value={p.bestStreak} />
-                      {p.bestTeammate && (
-                        <span className="lb-mate lb-mate-best">🤝 {p.bestTeammate.name} {pct(p.bestTeammate.winRateTogether)}</span>
-                      )}
-                      {p.worstTeammate && (
-                        <span className="lb-mate lb-mate-worst">💔 {p.worstTeammate.name} {pct(p.worstTeammate.winRateTogether)}</span>
-                      )}
-                    </>
-                  ),
+                  setsWon: p.setsWon,
+                  setsLost: p.setsLost,
+                  played: p.played,
                 }))}
               />
             )}
-          </div>
+          </>
         )}
 
         {activeTab === 'dati' && (

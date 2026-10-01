@@ -69,6 +69,7 @@ export default function AuthHeader() {
       </Link>
 
       <div className="app-header-right">
+        <Link href="/squadre" className="app-header-link" title="Squadre casuali" aria-label="Squadre casuali">🎲</Link>
         <ThemeToggle />
         <Link href="/settings" className="app-header-link" title="Impostazioni">⚙️</Link>
 

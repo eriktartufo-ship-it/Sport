@@ -2510,6 +2510,22 @@ button {
   /* era bianco fisso: in tema chiaro il testo delle regole non si leggeva */
   color: var(--text);
 }
+.padel-rule p + p {
+  margin-top: 0.5rem;
+}
+
+/* Attaccanti / difensori sotto la classifica principale: impilati su mobile,
+   affiancati da tablet in su. */
+.padel-ad-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+@media (min-width: 720px) {
+  .padel-ad-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
 .padel-rule strong {
   color: var(--foreground);
@@ -2646,6 +2662,10 @@ button.lb-row:active { background: var(--surface-2); }
   font-variant-numeric: tabular-nums;
 }
 .lb-sub-sep { opacity: 0.4; }
+/* Differenza (set) dentro la sottoriga: verde se positiva, rossa se negativa. */
+.lb-sub-diff { font-weight: 700; }
+.lb-sub-diff.is-good { color: var(--success-text); }
+.lb-sub-diff.is-bad { color: var(--danger-text); }
 
 /* Metrica principale a destra: numero grande + etichetta piccola */
 .lb-primary {
@@ -2665,6 +2685,7 @@ button.lb-row:active { background: var(--surface-2); }
 }
 .lb-primary-value.is-accent { color: var(--accent-text); }
 .lb-primary-value.is-good { color: var(--success-text); }
+.lb-primary-value.is-bad { color: var(--danger-text); }
 .lb-primary-label {
   font-size: 0.6rem;
   font-weight: 700;
@@ -2875,4 +2896,233 @@ button.lb-row:active { background: var(--surface-2); }
   .day-group-head {
     padding: 0.5rem 0.75rem;
   }
+}
+
+/* ============================================================================
+ * SQUADRE CASUALI (/squadre) — scegli chi gioca e quante squadre, l'app mescola
+ * (mazzo che rimbalza) e distribuisce a giro. L'animazione FLIP sta nella
+ * pagina (translate via Web Animations); qui solo layout, colori e i due loop CSS.
+ * ========================================================================== */
+:root {
+  /* colori squadra: abbastanza pieni da reggere testo bianco nel badge, in entrambi i temi */
+  --team-0: #2563eb;
+  --team-1: #c026d3;
+  --team-2: #16a34a;
+  --team-3: #d97706;
+  --team-4: #7c3aed;
+  --team-5: #0891b2;
+}
+
+.rt-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.rt-section {
+  margin-bottom: 1.5rem;
+}
+.rt-section-title {
+  margin-bottom: 1rem;
+}
+
+.rt-select-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.9rem;
+}
+.rt-select-count {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.rt-select-count strong {
+  color: var(--text);
+}
+.rt-select-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.rt-count-picker {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.rt-count-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-1);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--dur) var(--ease-soft), border-color var(--dur) var(--ease-soft);
+}
+.rt-count-btn:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+.rt-count-btn.is-active {
+  border-color: var(--primary);
+  background: var(--accent-bg);
+  color: var(--accent-text);
+}
+.rt-preview {
+  margin-top: 0.8rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.rt-go-wrap {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.rt-go {
+  width: 100%;
+  max-width: 420px;
+  min-height: 52px;
+  font-size: 1.05rem;
+  gap: 0.5rem;
+}
+.rt-dice {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rt-dice.is-rolling {
+    animation: rt-roll 0.7s linear infinite;
+  }
+}
+@keyframes rt-roll {
+  0% { rotate: 0deg; translate: 0 0; }
+  25% { translate: 0 -3px; }
+  50% { rotate: 180deg; translate: 0 0; }
+  75% { translate: 0 -3px; }
+  100% { rotate: 360deg; translate: 0 0; }
+}
+
+.rt-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.rt-stage {
+  scroll-margin-top: calc(var(--app-header-height) + 12px);
+}
+.rt-stage-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Il "mazzo": i giocatori in mucchio, si rimescolano a ogni giro. */
+.rt-deck {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 0.55rem;
+  min-height: 140px;
+  padding: 0.5rem 0;
+}
+
+.rt-chip {
+  /* sopra i riquadri squadra mentre vola (i riquadri non creano stacking context apposta) */
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rt-chip-deck {
+  transition: rotate 180ms var(--ease-soft);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rt-chip-deck {
+    animation: rt-chip-pop var(--dur-slow) var(--ease-bounce) both;
+  }
+}
+/* Riparte a ogni rimescolo (spostare un nodo nel DOM riavvia le animazioni CSS):
+   solo scala, così il giocatore "rimbalza" invece di lampeggiare. */
+@keyframes rt-chip-pop {
+  from { scale: 0.7; }
+  to { scale: 1; }
+}
+
+.rt-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+/* niente blur/opacity/transform qui: creerebbero uno stacking context e i
+   giocatori in volo passerebbero SOTTO il riquadro vicino */
+.rt-team {
+  --team-color: var(--team-0);
+  min-width: 0;
+  padding: 0.85rem;
+  border-radius: 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--glass-border);
+  border-top: 3px solid var(--team-color);
+}
+.rt-team-1 { --team-color: var(--team-1); }
+.rt-team-2 { --team-color: var(--team-2); }
+.rt-team-3 { --team-color: var(--team-3); }
+.rt-team-4 { --team-color: var(--team-4); }
+.rt-team-5 { --team-color: var(--team-5); }
+.rt-team-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+.rt-team-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--team-color);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+.rt-team-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rt-team-players {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }

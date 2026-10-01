@@ -52,8 +52,17 @@ export default function PadelRulesCard() {
       <div className="padel-rule">
         <h3>🏆 Partita</h3>
         <p>Si giocano i set che il tempo permette (da 1 a 5): vince chi ne conquista di più.
-          A parità di set (1-1, 2-2) è <strong>pareggio</strong>: in classifica vale mezza
-          vittoria e interrompe la serie di vittorie.</p>
+          A parità di set (1-1, 2-2) è <strong>pareggio</strong>, e interrompe la serie di vittorie.</p>
+      </div>
+
+      <div className="padel-rule">
+        <h3>📊 Classifiche</h3>
+        <p><strong>Coppie</strong>: vittoria <strong>3 punti</strong>, pareggio <strong>1</strong>,
+          sconfitta <strong>0</strong>. A pari punti passa avanti chi ha la differenza set
+          migliore (set vinti meno set persi), poi chi ha vinto più set.</p>
+        <p><strong>Persone</strong>: conta la differenza set di ognuno, con qualunque compagno.</p>
+        <p><strong>Attaccanti</strong>: chi ha vinto più set. <strong>Difensori</strong>: chi ha
+          perso meno set.</p>
       </div>
 
       <div className="padel-rule">
