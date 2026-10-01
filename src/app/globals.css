@@ -58,6 +58,8 @@
   --ghost-bg: rgba(96, 165, 250, 0.12);
   --ghost-bg-hover: rgba(96, 165, 250, 0.22);
   --ghost-border: rgba(96, 165, 250, 0.32);
+  /* velo dietro al menù laterale */
+  --scrim: rgba(0, 0, 0, 0.5);
 }
 
 /* ============================================================================
@@ -98,6 +100,7 @@
   --ghost-bg: rgba(29, 78, 216, 0.10);
   --ghost-bg-hover: rgba(29, 78, 216, 0.16);
   --ghost-border: rgba(29, 78, 216, 0.35);
+  --scrim: rgba(15, 23, 42, 0.32);
   color-scheme: light;
 }
 
@@ -389,10 +392,6 @@ button {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     var(--glass-shadow);
-}
-.sport-card-disabled {
-  opacity: 0.55;
-  pointer-events: none;
 }
 .sport-card-head {
   display: flex;
@@ -3145,4 +3144,136 @@ button.lb-row:active { background: var(--surface-2); }
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+/* ============================================================================
+ * MENÙ LATERALE SPORT — il bottone ☰ dell'header (al posto di «🏠 Home») apre un
+ * pannello da sinistra con Home + gli sport. Sempre montato per animare; da chiuso
+ * non intercetta tocchi (pointer-events) ed è `inert`.
+ * ========================================================================== */
+.app-header-menu {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  color: var(--text);
+}
+.app-header-menu:hover .app-header-menu-icon {
+  background: var(--icon-btn-hover);
+  border-color: var(--stroke);
+}
+.app-header-menu-icon {
+  font-size: 1.1rem;
+}
+.app-header-menu-label {
+  font-weight: 700;
+  font-size: 1.15rem;
+  background: var(--brand-text-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* a 375 lo spazio serve ai tasti di destra: resta solo l'icona (il titolo grande della pagina dice dove sei) */
+@media (max-width: 479px) {
+  .app-header-menu-label {
+    display: none;
+  }
+}
+
+.sport-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+}
+.sport-drawer.is-open {
+  pointer-events: auto;
+}
+.sport-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-soft);
+}
+.sport-drawer.is-open .sport-drawer-backdrop {
+  opacity: 1;
+}
+.sport-drawer-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(300px, 82vw);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.75rem) 0.75rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
+  overflow-y: auto;
+  /* opaco: col glass semitrasparente si leggevano i titoli e i grafici della pagina sotto */
+  background: var(--page-bg);
+  background-image: var(--page-gradient);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transform: translateX(-100%);
+  transition: transform var(--dur-slow) var(--ease-snap);
+}
+.sport-drawer.is-open .sport-drawer-panel {
+  transform: none;
+}
+.sport-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.25rem 0 0.6rem;
+  min-height: 44px;
+}
+.sport-drawer-title {
+  font-weight: 800;
+  font-size: 1.2rem;
+  background: var(--brand-text-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.sport-drawer-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.sport-drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 52px;
+  padding: 0 0.85rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1.05rem;
+  transition: background var(--dur) var(--ease-soft);
+}
+.sport-drawer-item:hover {
+  background: var(--surface-1);
+}
+.sport-drawer-item.is-active {
+  background: var(--accent-bg);
+  border-color: var(--ghost-border);
+  color: var(--accent-text);
+}
+.sport-drawer-icon {
+  width: 28px;
+  text-align: center;
+  font-size: 1.3rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sport-drawer-backdrop,
+  .sport-drawer-panel {
+    transition: none;
+  }
 }
