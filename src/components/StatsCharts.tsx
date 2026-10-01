@@ -34,8 +34,8 @@ const SCORE_BY_MEDAL: Record<string, number> = {
   NONE: 0,
 };
 
-// Paletta estesa: colori distinti per gestire molti player
-const LINE_COLORS = [
+// Paletta estesa: colori distinti per gestire molti player (usata anche dai grafici padel)
+export const LINE_COLORS = [
   '#60a5fa', '#a78bfa', '#34d399', '#fbbf24', '#f87171',
   '#22d3ee', '#fb923c', '#e879f9', '#84cc16', '#06b6d4',
   '#f43f5e', '#facc15', '#8b5cf6', '#ec4899', '#14b8a6',

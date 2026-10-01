@@ -921,6 +921,26 @@ button {
   min-width: 0;
 }
 
+/* Grafici che seguono il tema: le proprietà CSS battono gli attributi SVG che
+   recharts scrive (stroke/fill di default grigi/bianchi), quindi assi, griglia e
+   linea dello zero si leggono sia in chiaro sia in scuro. */
+.chart-themed .recharts-cartesian-axis-tick-value,
+.chart-themed .recharts-cartesian-axis-tick-value tspan {
+  fill: var(--muted);
+}
+.chart-themed .recharts-cartesian-axis-line,
+.chart-themed .recharts-cartesian-axis-tick-line,
+.chart-themed .recharts-cartesian-grid line {
+  stroke: var(--divider);
+}
+.chart-themed .recharts-reference-line line {
+  stroke: var(--subtle);
+}
+/* La legenda viene dopo nel DOM e si disegnava SOPRA il tooltip: il tooltip va in primo piano. */
+.chart-themed .recharts-tooltip-wrapper {
+  z-index: 2 !important;
+}
+
 /* Player tab — riga compatta "Aggiungi giocatore [nome] +" */
 .add-player-inline {
   display: flex;

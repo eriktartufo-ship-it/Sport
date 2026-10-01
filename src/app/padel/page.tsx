@@ -8,7 +8,8 @@ import RegisterFab from '@/components/RegisterFab';
 import PlayerManagementCard from '@/components/PlayerManagementCard';
 import PadelRulesCard from '@/components/PadelRulesCard';
 import Leaderboard, { LbStat } from '@/components/Leaderboard';
-import { rankAttack, rankDefense } from '@/lib/scoring-padel';
+import PadelTrendCharts from '@/components/PadelTrendCharts';
+import { parseSets as parsePadelSets, rankAttack, rankDefense, type MatchPadelLite } from '@/lib/scoring-padel';
 
 type Side = 'A' | 'B';
 
@@ -116,6 +117,15 @@ function AttackDefense({ rows, unit }: { rows: AdRow[]; unit: 'set' | 'game' }) 
     </div>
   );
 }
+
+/** Partita della cronologia → forma usata dai calcoli (grafici persone). */
+const toLite = (m: MatchPadel): MatchPadelLite => ({
+  id: m.id,
+  date: m.date,
+  createdAt: m.createdAt,
+  sets: parsePadelSets(m.setsJson),
+  results: m.results.map((r) => ({ playerId: r.playerId, teamSide: r.teamSide, player: { name: r.player.name } })),
+});
 
 const parseSets = (json: string): [number, number][] => {
   try {
@@ -314,6 +324,9 @@ export default function DashboardPadel() {
                   played: p.played,
                 }))}
               />
+            )}
+            {!loading && persons.length > 0 && (
+              <PadelTrendCharts matches={matches.map(toLite)} order={persons.map((p) => p.id)} />
             )}
           </>
         )}

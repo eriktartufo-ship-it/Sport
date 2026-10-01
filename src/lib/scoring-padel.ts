@@ -23,7 +23,7 @@ export const POINTS_WIN = 3;
 export const POINTS_DRAW = 1;
 export const POINTS_LOSS = 0;
 
-import { compareChrono } from './match-order';
+import { compareChrono, dayKey } from './match-order';
 
 export type Side = 'A' | 'B';
 export type PadelSet = { a: number; b: number };
@@ -377,4 +377,71 @@ export function rankDefense<T extends AttackDefenseLine>(rows: readonly T[]): T[
     if (y.played !== x.played) return y.played - x.played;
     return y.won - x.won;
   });
+}
+
+/** Una linea del grafico: un valore per giornata, `null` dove la persona non ha (ancora) giocato. */
+export type TimelineSeries = { id: string; name: string; values: (number | null)[] };
+
+export type PadelGameTimeline = {
+  /** Giornate in ordine di gioco, chiave `YYYY-MM-DD` (stessa di `groupByDay`). */
+  days: string[];
+  /** Differenza game CUMULATA a fine giornata: sale = sta migliorando. `null` prima della prima partita. */
+  cumulative: TimelineSeries[];
+  /** Differenza game MEDIA per partita in quella giornata: la forma del giorno. `null` se non ha giocato. */
+  perDay: TimelineSeries[];
+};
+
+/**
+ * Andamento delle persone nel tempo, in GAME (stessa unità della classifica persone):
+ * per ogni giornata la differenza game cumulata e quella media per partita.
+ * Le linee seguono l'ordine di `order` (gli id della classifica), così colori e
+ * legenda stanno nello stesso ordine della classifica; chi non è in `order` va in coda.
+ */
+export function computePadelGameTimeline(matches: MatchPadelLite[], order: string[] = []): PadelGameTimeline {
+  const sorted = [...matches].sort(compareChrono);
+  const days: string[] = [];
+  const names = new Map<string, string>();
+  // per giornata: somma differenza game e numero di partite di ogni persona
+  const byDay = new Map<string, Map<string, { diff: number; played: number }>>();
+
+  for (const m of sorted) {
+    const k = dayKey(m.date);
+    if (!byDay.has(k)) {
+      byDay.set(k, new Map());
+      days.push(k);
+    }
+    const t = tally(m);
+    const sides: Side[] = ['A', 'B'];
+    for (const side of sides) {
+      const sideResults = m.results.filter((r) => r.teamSide === side);
+      if (sideResults.length !== 2) continue;
+      const diff = side === 'A' ? t.gamesA - t.gamesB : t.gamesB - t.gamesA;
+      for (const r of sideResults) {
+        if (r.player?.name) names.set(r.playerId, r.player.name);
+        else if (!names.has(r.playerId)) names.set(r.playerId, '');
+        const cell = byDay.get(k)!.get(r.playerId) ?? { diff: 0, played: 0 };
+        cell.diff += diff;
+        cell.played++;
+        byDay.get(k)!.set(r.playerId, cell);
+      }
+    }
+  }
+
+  const ids = [...order.filter((id) => names.has(id)), ...[...names.keys()].filter((id) => !order.includes(id))];
+  const cumulative: TimelineSeries[] = [];
+  const perDay: TimelineSeries[] = [];
+  for (const id of ids) {
+    let running: number | null = null;
+    const cum: (number | null)[] = [];
+    const avg: (number | null)[] = [];
+    for (const k of days) {
+      const cell = byDay.get(k)!.get(id);
+      if (cell) running = (running ?? 0) + cell.diff;
+      cum.push(running);
+      avg.push(cell ? Math.round((cell.diff / cell.played) * 10) / 10 : null);
+    }
+    cumulative.push({ id, name: names.get(id) ?? '', values: cum });
+    perDay.push({ id, name: names.get(id) ?? '', values: avg });
+  }
+  return { days, cumulative, perDay };
 }

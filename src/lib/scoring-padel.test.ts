@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   computePadelTeamRankings,
   computePadelPlayerRankings,
+  computePadelGameTimeline,
   parseSets,
   rankAttack,
   rankDefense,
@@ -328,5 +329,47 @@ describe('pareggio (regola 2026-09-30)', () => {
     expect(MatchPadelUpsertSchema.safeParse(body([{ a: 6, b: 2 }, { a: 3, b: 6 }])).success).toBe(true);
     // i set fuori regola restano rifiutati
     expect(MatchPadelUpsertSchema.safeParse(body([{ a: 6, b: 2 }, { a: 10, b: 8 }])).success).toBe(false);
+  });
+});
+
+describe('andamento nel tempo (grafico persone, in game)', () => {
+  const matches = [
+    mk('m1', '2026-09-01', ['a', 'b'], ['c', 'd'], [[6, 3]]), // a,b +3 · c,d -3
+    mk('m2', '2026-09-01', ['a', 'c'], ['b', 'd'], [[6, 4]]), // a,c +2 · b,d -2 (stessa giornata)
+    mk('m3', '2026-09-08', ['a', 'e'], ['b', 'c'], [[2, 6]]), // a,e -4 · b,c +4
+  ];
+  const byId = (series: { id: string; values: (number | null)[] }[]) =>
+    Object.fromEntries(series.map((x) => [x.id, x.values]));
+
+  it('un punto per giornata, differenza game cumulata; null prima della prima partita', () => {
+    const t = computePadelGameTimeline(matches);
+    expect(t.days).toEqual(['2026-09-01', '2026-09-08']);
+    expect(byId(t.cumulative)).toEqual({ a: [5, 1], b: [1, 5], c: [-1, 3], d: [-5, -5], e: [null, -4] });
+  });
+
+  it('forma del giorno = differenza game media per partita; null se quel giorno non ha giocato', () => {
+    const t = computePadelGameTimeline(matches);
+    expect(byId(t.perDay)).toEqual({ a: [2.5, -4], b: [0.5, 4], c: [-0.5, 4], d: [-2.5, null], e: [null, -4] });
+  });
+
+  it("l'ultimo punto cumulato coincide con la differenza game della classifica", () => {
+    const t = computePadelGameTimeline(matches);
+    for (const p of computePadelPlayerRankings(matches)) {
+      const line = t.cumulative.find((x) => x.id === p.id)!;
+      expect(line.values.at(-1)).toBe(p.gameDiff);
+    }
+  });
+
+  it("le linee seguono l'ordine della classifica; chi manca va in coda", () => {
+    const t = computePadelGameTimeline(matches, ['d', 'b', 'zzz']);
+    expect(t.cumulative.map((x) => x.id)).toEqual(['d', 'b', 'a', 'c', 'e']);
+    expect(t.cumulative[0].name).toBe('D');
+  });
+
+  it("non dipende dall'ordine in cui arrivano le partite", () => {
+    const a = computePadelGameTimeline(matches);
+    const b = computePadelGameTimeline([...matches].reverse());
+    expect(byId(b.cumulative)).toEqual(byId(a.cumulative));
+    expect(b.days).toEqual(a.days);
   });
 });
