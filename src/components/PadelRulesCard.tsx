@@ -60,9 +60,11 @@ export default function PadelRulesCard() {
         <p><strong>Coppie</strong>: vittoria <strong>3 punti</strong>, pareggio <strong>1</strong>,
           sconfitta <strong>0</strong>. A pari punti passa avanti chi ha la differenza set
           migliore (set vinti meno set persi), poi chi ha vinto più set.</p>
-        <p><strong>Persone</strong>: conta la differenza set di ognuno, con qualunque compagno.</p>
-        <p><strong>Attaccanti</strong>: chi ha vinto più set. <strong>Difensori</strong>: chi ha
-          perso meno set.</p>
+        <p><strong>Persone</strong>: contano i <strong>game</strong>, con qualunque compagno: un
+          6-3 vale 6 game vinti e 3 persi. Passa avanti chi ha la differenza game migliore, poi chi
+          ne ha vinti di più.</p>
+        <p><strong>Attaccanti</strong>: chi ha vinto di più. <strong>Difensori</strong>: chi ha
+          perso di meno. Per le coppie si contano i set, per le persone i game.</p>
       </div>
 
       <div className="padel-rule">

@@ -75,21 +75,25 @@ const matchesLabel = (n: number) => (n === 1 ? '1 partita' : `${n} partite`);
 /** Quante righe mostrano le classifiche attaccanti/difensori. */
 const TOP_AD = 5;
 
-type SetRow = { id: string; name: string; setsWon: number; setsLost: number; played: number };
+type AdRow = { id: string; name: string; won: number; lost: number; played: number };
 
-/** Le due classifiche sotto quella principale: attaccanti (più set vinti) e difensori (meno set persi). */
-function AttackDefense({ rows }: { rows: SetRow[] }) {
+/**
+ * Le due classifiche sotto quella principale: attaccanti (più vinti) e difensori
+ * (meno persi). `unit` = 'set' per le coppie, 'game' per le persone.
+ */
+function AttackDefense({ rows, unit }: { rows: AdRow[]; unit: 'set' | 'game' }) {
+  const label = unit === 'set' ? 'Set' : 'Game';
   return (
     <div className="padel-ad-grid">
       <div className="card">
         <h2 className="card-title">⚔️ Migliori attaccanti</h2>
-        <p className="card-hint">Chi ha vinto più set.</p>
+        <p className="card-hint">Chi ha vinto più {unit}.</p>
         <Leaderboard
           rows={rankAttack(rows).slice(0, TOP_AD).map((r) => ({
             id: r.id,
             name: r.name,
-            primaryValue: String(r.setsWon),
-            primaryLabel: 'Set vinti',
+            primaryValue: String(r.won),
+            primaryLabel: `${label} vinti`,
             primaryTone: 'good',
             sub: <>in {matchesLabel(r.played)}</>,
           }))}
@@ -97,13 +101,13 @@ function AttackDefense({ rows }: { rows: SetRow[] }) {
       </div>
       <div className="card">
         <h2 className="card-title">🛡️ Migliori difensori</h2>
-        <p className="card-hint">Chi ha perso meno set.</p>
+        <p className="card-hint">Chi ha perso meno {unit}.</p>
         <Leaderboard
           rows={rankDefense(rows).slice(0, TOP_AD).map((r) => ({
             id: r.id,
             name: r.name,
-            primaryValue: String(r.setsLost),
-            primaryLabel: 'Set persi',
+            primaryValue: String(r.lost),
+            primaryLabel: `${label} persi`,
             primaryTone: 'accent',
             sub: <>in {matchesLabel(r.played)}</>,
           }))}
@@ -240,11 +244,12 @@ export default function DashboardPadel() {
             </div>
             {!loading && teams.length > 0 && (
               <AttackDefense
+                unit="set"
                 rows={teams.map((t) => ({
                   id: t.teamKey,
                   name: t.playerNames.join(' + '),
-                  setsWon: t.setsWon,
-                  setsLost: t.setsLost,
+                  won: t.setsWon,
+                  lost: t.setsLost,
                   played: t.played,
                 }))}
               />
@@ -257,7 +262,8 @@ export default function DashboardPadel() {
             <div className="card">
               <h2 className="card-title">Classifica Persone</h2>
               <p className="card-hint">
-                Set vinti meno set persi, con qualunque compagno. Tocca una riga per game e compagni.
+                Game vinti meno game persi, con qualunque compagno: un 6-3 vale 6 a 3.
+                Tocca una riga per set e compagni.
               </p>
               {loading ? (
                 <p>Caricamento...</p>
@@ -268,14 +274,14 @@ export default function DashboardPadel() {
                   rows={persons.map((p, idx) => ({
                     id: p.id,
                     name: p.name,
-                    crown: idx === 0 && p.setDiff > 0,
+                    crown: idx === 0 && p.gameDiff > 0,
                     badges: p.currentStreak > 1 ? <span className="streak-badge">🔥{p.currentStreak}</span> : undefined,
-                    primaryValue: signed(p.setDiff),
-                    primaryLabel: 'Diff set',
-                    primaryTone: diffTone(p.setDiff),
+                    primaryValue: signed(p.gameDiff),
+                    primaryLabel: 'Diff game',
+                    primaryTone: diffTone(p.gameDiff),
                     sub: (
                       <>
-                        <span>{p.setsWon} vinti · {p.setsLost} persi</span>
+                        <span>{p.gamesWon} vinti · {p.gamesLost} persi</span>
                         <span className="lb-sub-sep">·</span>
                         <span>{matchesLabel(p.played)}</span>
                       </>
@@ -283,7 +289,7 @@ export default function DashboardPadel() {
                     details: (
                       <>
                         <LbStat label="Risultati" value={record(p)} />
-                        <LbStat label="Game" value={`${p.gamesWon}-${p.gamesLost}`} />
+                        <LbStat label="Set" value={`${p.setsWon}-${p.setsLost}`} />
                         <LbStat label="Serie migliore" value={p.bestStreak} />
                         {p.bestTeammate && (
                           <span className="lb-mate lb-mate-best">🤝 {p.bestTeammate.name} {pct(p.bestTeammate.winRateTogether)}</span>
@@ -299,11 +305,12 @@ export default function DashboardPadel() {
             </div>
             {!loading && persons.length > 0 && (
               <AttackDefense
+                unit="game"
                 rows={persons.map((p) => ({
                   id: p.id,
                   name: p.name,
-                  setsWon: p.setsWon,
-                  setsLost: p.setsLost,
+                  won: p.gamesWon,
+                  lost: p.gamesLost,
                   played: p.played,
                 }))}
               />

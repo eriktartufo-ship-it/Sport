@@ -134,44 +134,47 @@ describe('computePadelPlayerRankings', () => {
     expect(a.worstTeammate).toBeNull(); // solo 1 compagno qualificato
   });
 
-  it('ordina per differenza set, indipendentemente dal compagno', () => {
+  // Correzione di Erik (2026-10-01): per le persone contano i GAME, non i set.
+  it('conta i game: un 6-3 vale 6 vinti e 3 persi; ordina per differenza game', () => {
     const matches = [
-      mk('m1', '2026-07-01', ['a', 'b'], ['c', 'd'], [[6, 0], [6, 0]]), // a,b +2
-      mk('m2', '2026-07-02', ['a', 'c'], ['b', 'd'], [[6, 0], [0, 6], [6, 0]]), // a,c +1 · b,d -1
+      mk('m1', '2026-07-01', ['a', 'b'], ['c', 'd'], [[6, 3], [6, 4]]), // a,b 12-7
+      mk('m2', '2026-07-02', ['a', 'c'], ['b', 'd'], [[6, 1]]), // a,c 6-1
     ];
     const rows = computePadelPlayerRankings(matches);
-    const diff = Object.fromEntries(rows.map((r) => [r.id, r.setDiff]));
-    expect(diff).toEqual({ a: 3, b: 1, c: -1, d: -3 });
+    const a = rows.find((r) => r.id === 'a')!;
+    expect(a.gamesWon).toBe(6 + 6 + 6);
+    expect(a.gamesLost).toBe(3 + 4 + 1);
+    const diff = Object.fromEntries(rows.map((r) => [r.id, r.gameDiff]));
+    expect(diff).toEqual({ a: 10, b: 0, c: 0, d: -10 });
+    // b e c pari a 0 e con 13 game vinti a testa: decide la differenza set (b +1, c -1)
     expect(rows.map((r) => r.id)).toEqual(['a', 'b', 'c', 'd']);
-    expect(rows[0].setsWon).toBe(4);
-    expect(rows[0].setsLost).toBe(1);
   });
 
-  it('la differenza set conta più delle vittorie', () => {
-    // x: 1 vittoria 2-1 e 1 sconfitta 0-2 = 1 vittoria, -1 · y: 2 pareggi 1-1 = 0 vittorie, 0
+  it('la differenza game conta più della differenza set e delle vittorie', () => {
+    // x: 6-0 5-7 5-7 = set 1-2 (-1), game 16-14 (+2), sconfitta · y: 6-4 4-6 = set 1-1 (0), game 10-10 (0), pareggio
     const rows = computePadelPlayerRankings([
-      mk('m1', '2026-07-01', ['x', 'p'], ['q', 'r'], [[6, 0], [0, 6], [6, 0]]),
-      mk('m2', '2026-07-02', ['x', 'p'], ['q', 'r'], [[0, 6], [0, 6]]),
-      mk('m3', '2026-07-03', ['y', 's'], ['t', 'u'], [[6, 0], [0, 6]]),
-      mk('m4', '2026-07-04', ['y', 's'], ['t', 'u'], [[6, 0], [0, 6]]),
+      mk('m1', '2026-07-01', ['x', 'p'], ['q', 'r'], [[6, 0], [5, 7], [5, 7]]),
+      mk('m2', '2026-07-02', ['y', 's'], ['t', 'u'], [[6, 4], [4, 6]]),
     ]);
     const pos = (id: string) => rows.findIndex((r) => r.id === id);
-    expect(rows[pos('x')].wins).toBe(1);
+    expect(rows[pos('x')].gameDiff).toBe(2);
     expect(rows[pos('x')].setDiff).toBe(-1);
-    expect(rows[pos('y')].wins).toBe(0);
+    expect(rows[pos('x')].losses).toBe(1);
+    expect(rows[pos('y')].gameDiff).toBe(0);
     expect(rows[pos('y')].setDiff).toBe(0);
-    expect(pos('y')).toBeLessThan(pos('x'));
+    expect(pos('x')).toBeLessThan(pos('y'));
   });
 
-  it('a pari differenza set sta davanti chi ha vinto più set (anche con meno game)', () => {
+  it('a pari differenza game sta davanti chi ha vinto più game (anche con differenza set peggiore)', () => {
+    // a: 6-1 4-6 4-6 6-3 = game 20-16 (+4), set 2-2 (0) · e: 6-4 6-4 = game 12-8 (+4), set 2-0 (+2)
     const rows = computePadelPlayerRankings([
-      mk('m1', '2026-07-01', ['a', 'b'], ['c', 'd'], [[6, 4], [4, 6], [6, 4]]), // a,b 2-1 (+1), game +4
-      mk('m2', '2026-07-02', ['e', 'f'], ['g', 'h'], [[6, 0]]), // e,f 1-0 (+1), game +6
+      mk('m1', '2026-07-01', ['a', 'b'], ['c', 'd'], [[6, 1], [4, 6], [4, 6], [6, 3]]),
+      mk('m2', '2026-07-02', ['e', 'f'], ['g', 'h'], [[6, 4], [6, 4]]),
     ]);
     const pos = (id: string) => rows.findIndex((r) => r.id === id);
-    expect(rows[pos('a')].setDiff).toBe(1);
-    expect(rows[pos('e')].setDiff).toBe(1);
-    expect(rows[pos('e')].gameDiff).toBeGreaterThan(rows[pos('a')].gameDiff);
+    expect(rows[pos('a')].gameDiff).toBe(4);
+    expect(rows[pos('e')].gameDiff).toBe(4);
+    expect(rows[pos('e')].setDiff).toBeGreaterThan(rows[pos('a')].setDiff);
     expect(pos('a')).toBeLessThan(pos('e'));
   });
 });
@@ -232,14 +235,14 @@ describe('classifica coppie a punti (regola 2026-10-01)', () => {
 });
 
 describe('attaccanti e difensori', () => {
-  const row = (id: string, setsWon: number, setsLost: number, played: number) => ({ id, setsWon, setsLost, played });
+  const row = (id: string, won: number, lost: number, played: number) => ({ id, won, lost, played });
 
-  it('attaccanti: più set vinti; a parità chi ha giocato meno', () => {
+  it('attaccanti: più vinti; a parità chi ha giocato meno', () => {
     const out = rankAttack([row('a', 3, 1, 2), row('b', 5, 4, 4), row('c', 3, 0, 3), row('d', 5, 2, 3)]);
     expect(out.map((r) => r.id)).toEqual(['d', 'b', 'a', 'c']);
   });
 
-  it('difensori: meno set persi; a parità chi ha giocato di più', () => {
+  it('difensori: meno persi; a parità chi ha giocato di più', () => {
     const out = rankDefense([row('a', 3, 1, 2), row('b', 5, 4, 4), row('c', 3, 1, 3), row('d', 0, 0, 1)]);
     expect(out.map((r) => r.id)).toEqual(['d', 'c', 'a', 'b']);
   });
@@ -251,17 +254,18 @@ describe('attaccanti e difensori', () => {
     expect(input.map((r) => r.id)).toEqual(['a', 'b']);
   });
 
-  it('funzionano sulle classifiche vere (coppie e persone)', () => {
+  it('persone in GAME, coppie in SET (come li passa la dashboard)', () => {
     const matches = [
       mk('m1', '2026-09-01', ['a', 'b'], ['c', 'd'], [[6, 0], [6, 0]]),
       mk('m2', '2026-09-02', ['a', 'c'], ['b', 'd'], [[6, 0], [0, 6], [6, 0]]),
     ];
-    const persons = computePadelPlayerRankings(matches);
-    expect(rankAttack(persons)[0].id).toBe('a'); // 4 set vinti
-    expect(rankDefense(persons)[0].id).toBe('a'); // 1 set perso
-    expect(rankDefense(persons).at(-1)!.id).toBe('d'); // 4 set persi
-    const teams = computePadelTeamRankings(matches);
-    expect(rankAttack(teams)[0].teamKey).toBe(teamKey(['a', 'b']));
+    // game: a 24-6 · b 18-12 · c 12-18 · d 6-24
+    const persons = computePadelPlayerRankings(matches).map((p) => ({ id: p.id, won: p.gamesWon, lost: p.gamesLost, played: p.played }));
+    expect(rankAttack(persons).map((r) => [r.id, r.won])).toEqual([['a', 24], ['b', 18], ['c', 12], ['d', 6]]);
+    expect(rankDefense(persons).map((r) => [r.id, r.lost])).toEqual([['a', 6], ['b', 12], ['c', 18], ['d', 24]]);
+    // set: a+b 2-0, a+c 2-1 → stessi set vinti in 1 partita, a+b ne ha persi meno
+    const teams = computePadelTeamRankings(matches).map((t) => ({ id: t.teamKey, won: t.setsWon, lost: t.setsLost, played: t.played }));
+    expect(rankAttack(teams)[0].id).toBe(teamKey(['a', 'b']));
   });
 });
 

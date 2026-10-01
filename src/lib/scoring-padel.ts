@@ -13,8 +13,10 @@
  * Classifiche (regola di Erik, 2026-10-01 — sostituisce la Win%):
  *  - COPPIE: punti come nel calcio, vittoria 3 · pareggio 1 · sconfitta 0.
  *    A pari punti decide la differenza set (vinti − persi), poi i set vinti.
- *  - PERSONE: differenza set, indipendentemente dal compagno; poi i set vinti.
- *  - ATTACCANTI = più set vinti · DIFENSORI = meno set persi (per coppia e per persona).
+ *  - PERSONE (correzione di Erik, stesso giorno): contano i GAME, non i set — un 6-3
+ *    vale 6 game vinti e 3 persi. Ordine: differenza game, poi game vinti.
+ *  - ATTACCANTI = più vinti · DIFENSORI = meno persi. Le coppie li contano in SET,
+ *    le persone in GAME: `rankAttack`/`rankDefense` non sanno l'unità, la sceglie chi chiama.
  */
 
 export const POINTS_WIN = 3;
@@ -339,39 +341,40 @@ export function computePadelPlayerRankings(matches: MatchPadelLite[]): PadelPlay
     };
   });
 
-  // differenza set → set vinti → differenza game
+  // differenza game → game vinti → differenza set
   rows.sort((x, y) => {
-    if (y.setDiff !== x.setDiff) return y.setDiff - x.setDiff;
-    if (y.setsWon !== x.setsWon) return y.setsWon - x.setsWon;
     if (y.gameDiff !== x.gameDiff) return y.gameDiff - x.gameDiff;
+    if (y.gamesWon !== x.gamesWon) return y.gamesWon - x.gamesWon;
+    if (y.setDiff !== x.setDiff) return y.setDiff - x.setDiff;
     return y.played - x.played;
   });
   return rows;
 }
 
-type SetLine = { setsWon: number; setsLost: number; played: number };
+/** Riga per attaccanti/difensori: vinti/persi nell'unità scelta da chi chiama (set o game). */
+export type AttackDefenseLine = { won: number; lost: number; played: number };
 
 /**
- * Migliori ATTACCANTI: più set vinti. A parità, chi li ha vinti in meno partite
+ * Migliori ATTACCANTI: più vinti. A parità, chi li ha vinti in meno partite
  * (più prolifico), poi chi ne ha persi meno.
  */
-export function rankAttack<T extends SetLine>(rows: readonly T[]): T[] {
+export function rankAttack<T extends AttackDefenseLine>(rows: readonly T[]): T[] {
   return [...rows].sort((x, y) => {
-    if (y.setsWon !== x.setsWon) return y.setsWon - x.setsWon;
+    if (y.won !== x.won) return y.won - x.won;
     if (x.played !== y.played) return x.played - y.played;
-    return x.setsLost - y.setsLost;
+    return x.lost - y.lost;
   });
 }
 
 /**
- * Migliori DIFENSORI: meno set persi. A parità, chi li ha persi in più partite
+ * Migliori DIFENSORI: meno persi. A parità, chi li ha persi in più partite
  * (ha tenuto più a lungo), poi chi ne ha vinti di più.
  * ⚠️ È un totale, non una media: chi ha giocato poco parte avvantaggiato.
  */
-export function rankDefense<T extends SetLine>(rows: readonly T[]): T[] {
+export function rankDefense<T extends AttackDefenseLine>(rows: readonly T[]): T[] {
   return [...rows].sort((x, y) => {
-    if (x.setsLost !== y.setsLost) return x.setsLost - y.setsLost;
+    if (x.lost !== y.lost) return x.lost - y.lost;
     if (y.played !== x.played) return y.played - x.played;
-    return y.setsWon - x.setsWon;
+    return y.won - x.won;
   });
 }
